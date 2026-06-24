@@ -1,0 +1,184 @@
+configVersion: 1.0.0
+componentName: pic32cx_bz2_devsupport
+coreVersion: 5.8.2
+device: PIC32WM_BW1
+library: []
+dependency:
+- dependencyPackage: class com.microchip.mcc.harmony.HarmonyModule
+  name: pic32cx_bz2_devsupport
+  type: module
+  version: ''
+- dependencyPackage: ''
+  name: wireless_pic32cxbz_wbz
+  type: package
+  version: v1.6.0
+customDataClassName: com.microchip.utils_mh3.utils.persistence.CustomModuleData
+data:
+  attachments:
+    children:
+    - children:
+      - attributes:
+          id: PIC32CX_BZ2_WolfCrypt_Dependency
+        children:
+        - children:
+          - attributes:
+              id: targetComponentID
+            children:
+            - type: Value
+              value: lib_wolfcrypt
+            type: String
+          - attributes:
+              id: targetAttachmentID
+            children:
+            - type: Value
+              value: lib_wolfcrypt
+            type: String
+          type: Attributes
+        type: DirectDependency
+      - attributes:
+          id: RTC_Module
+        children:
+        - children:
+          - attributes:
+              id: targetComponentID
+            children:
+            - type: Value
+              value: rtc
+            type: String
+          - attributes:
+              id: targetAttachmentID
+            children:
+            - type: Value
+              value: RTC_TMR
+            type: String
+          type: Attributes
+        type: DirectDependency
+      type: Attachments
+    type: pic32cx_bz2_devsupport
+  elementPosition:
+    attributes:
+      id: __ROOTVIEW
+    children:
+    - children:
+      - attributes:
+          id: pic32cx_bz2_devsupport
+          x: '632'
+          y: '75'
+        type: ElementPosition
+      type: ElementPositions
+    type: ComponentGraph
+  symbols:
+    AUTO_LOAD_PDS:
+      attributes:
+        id: AUTO_LOAD_PDS
+      children:
+      - children:
+        - attributes:
+            id: pic32cx_bz2_devsupport
+            value: 'true'
+          type: Dynamic
+        type: Values
+      type: Boolean
+    BLESTACK_LOADED:
+      attributes:
+        id: BLESTACK_LOADED
+      children:
+      - children:
+        - attributes:
+            id: pic32cx_bz2_devsupport
+            value: 'true'
+          type: Dynamic
+        type: Values
+      type: Boolean
+    BLE_SLEEP_SUPPORTED:
+      attributes:
+        id: BLE_SLEEP_SUPPORTED
+      children:
+      - children:
+        - attributes:
+            id: pic32cx_bz2_devsupport
+            value: 'true'
+          type: Dynamic
+        type: Values
+      type: Boolean
+    CUSTOM_ANT_ENABLE:
+      attributes:
+        id: CUSTOM_ANT_ENABLE
+      children:
+      - children:
+        - attributes:
+            id: pic32cx_bz2_devsupport
+            value: 'false'
+          type: Dynamic
+        type: Values
+      type: Boolean
+    DEVICE_CHECON_PFMWS:
+      attributes:
+        id: DEVICE_CHECON_PFMWS
+      children:
+      - children:
+        - attributes:
+            id: pic32cx_bz2_devsupport
+            value: '1'
+          type: Dynamic
+        type: Values
+      type: Integer
+    ENABLE_DEEP_SLEEP:
+      attributes:
+        id: ENABLE_DEEP_SLEEP
+      children:
+      - children:
+        - attributes:
+            id: pic32cx_bz2_devsupport
+            value: 'false'
+          type: Dynamic
+        - attributes:
+            value: 'true'
+          type: User
+        type: Values
+      type: Boolean
+    FREERTOS_CONFIG_PATH:
+      attributes:
+        id: FREERTOS_CONFIG_PATH
+      children:
+      - children:
+        - attributes:
+            id: pic32cx_bz2_devsupport
+            value: config/default/FreeRTOSConfig.h/
+          type: Dynamic
+        type: Values
+      type: String
+    PDS_LOADED:
+      attributes:
+        id: PDS_LOADED
+      children:
+      - children:
+        - attributes:
+            id: pic32cx_bz2_devsupport
+            value: 'true'
+          type: Dynamic
+        type: Values
+      type: Boolean
+    SLEEP_SUPPORTED:
+      attributes:
+        id: SLEEP_SUPPORTED
+      children:
+      - children:
+        - attributes:
+            id: pic32cx_bz2_devsupport
+            value: 'true'
+          type: Dynamic
+        type: Values
+      type: Boolean
+    WSS_ENABLE_MODE:
+      attributes:
+        id: WSS_ENABLE_MODE
+      children:
+      - children:
+        - attributes:
+            id: pic32cx_bz2_devsupport
+            value: WSS_ENABLE_BLE
+          type: Dynamic
+        type: Values
+      type: String
+  userData: {}

@@ -1,0 +1,16 @@
+# ArduRemoteID reference (not part of this project)
+ArduRemoteID/
+
+# MPLAB X build output
+firmware/ext_adv.X/build/
+firmware/ext_adv.X/dist/
+firmware/ext_adv.X/debug/
+
+# IDE files
+.vscode/
+*.log
+*.log.inx
+
+# OS files
+.DS_Store
+Thumbs.db

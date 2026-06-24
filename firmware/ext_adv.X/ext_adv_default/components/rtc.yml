@@ -1,0 +1,97 @@
+configVersion: 1.0.0
+componentName: rtc
+coreVersion: 5.8.2
+device: PIC32WM_BW1
+library: []
+dependency:
+- dependencyPackage: class com.microchip.mcc.harmony.HarmonyModule
+  name: rtc
+  type: module
+  version: ''
+- dependencyPackage: ''
+  name: csp
+  type: package
+  version: v3.23.0
+customDataClassName: com.microchip.utils_mh3.utils.persistence.CustomModuleData
+data:
+  attachments:
+    children:
+    - children:
+      - attributes:
+          id: RTC_TMR
+        children:
+        - children:
+          - attributes:
+              id: targetComponentID
+            children:
+            - type: Value
+              value: pic32cx_bz2_devsupport
+            type: String
+          - attributes:
+              id: targetAttachmentID
+            children:
+            - type: Value
+              value: RTC_Module
+            type: String
+          type: Attributes
+        type: DirectCapability
+      type: Attachments
+    type: rtc
+  elementPosition:
+    attributes:
+      id: __ROOTVIEW
+    children:
+    - children:
+      - attributes:
+          id: rtc
+          x: '850'
+          y: '40'
+        type: ElementPosition
+      type: ElementPositions
+    type: ComponentGraph
+  symbols:
+    RTC_MODE0_EVCTRL:
+      attributes:
+        id: RTC_MODE0_EVCTRL
+      children:
+      - children:
+        - attributes:
+            id: rtc
+            value: '256'
+          type: Dynamic
+        type: Values
+      type: Hex
+    RTC_MODE0_EVCTRL_CMPEO0_ENABLE:
+      attributes:
+        id: RTC_MODE0_EVCTRL_CMPEO0_ENABLE
+      children:
+      - children:
+        - attributes:
+            id: pic32cx_bz2_devsupport
+            value: 'true'
+          type: Dynamic
+        type: Values
+      type: Boolean
+    RTC_MODE0_INTENSET:
+      attributes:
+        id: RTC_MODE0_INTENSET
+      children:
+      - children:
+        - attributes:
+            id: rtc
+            value: '256'
+          type: Dynamic
+        type: Values
+      type: Hex
+    RTC_MODE0_INTENSET_CMP0_ENABLE:
+      attributes:
+        id: RTC_MODE0_INTENSET_CMP0_ENABLE
+      children:
+      - children:
+        - attributes:
+            id: pic32cx_bz2_devsupport
+            value: 'true'
+          type: Dynamic
+        type: Values
+      type: Boolean
+  userData: {}

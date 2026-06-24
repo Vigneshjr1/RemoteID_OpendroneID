@@ -1,0 +1,345 @@
+configVersion: 1.0.0
+componentName: lib_wolfcrypt
+coreVersion: 5.8.2
+device: PIC32WM_BW1
+library: []
+dependency:
+- dependencyPackage: class com.microchip.mcc.harmony.HarmonyModule
+  name: lib_wolfcrypt
+  type: module
+  version: ''
+- dependencyPackage: ''
+  name: crypto
+  type: package
+  version: v3.8.2
+- dependencyPackage: ''
+  name: wolfssl
+  type: package
+  version: v5.4.0
+customDataClassName: com.microchip.utils_mh3.utils.persistence.CustomModuleData
+data:
+  attachments: {}
+  elementPosition:
+    attributes:
+      id: __ROOTVIEW
+    children:
+    - children:
+      - attributes:
+          id: lib_wolfcrypt
+          x: '3'
+          y: '295'
+        type: ElementPosition
+      type: ElementPositions
+    type: ComponentGraph
+  symbols:
+    cryptoCrya_03710:
+      attributes:
+        id: cryptoCrya_03710
+      children:
+      - children:
+        - attributes:
+            id: lib_wolfcrypt
+            value: 'false'
+          type: Dynamic
+        type: Values
+      type: Boolean
+    cryptoCrya_U2803:
+      attributes:
+        id: cryptoCrya_U2803
+      children:
+      - children:
+        - attributes:
+            id: lib_wolfcrypt
+            value: 'false'
+          type: Dynamic
+        type: Values
+      type: Boolean
+    cryptoCrya_U2805:
+      attributes:
+        id: cryptoCrya_U2805
+      children:
+      - children:
+        - attributes:
+            id: lib_wolfcrypt
+            value: 'false'
+          type: Dynamic
+        type: Values
+      type: Boolean
+    wolfcrypt_aes:
+      attributes:
+        id: wolfcrypt_aes
+      children:
+      - children:
+        - attributes:
+            id: BLE_STACK_LIB
+            value: 'true'
+          type: Dynamic
+        type: Values
+      type: Boolean
+    wolfcrypt_aes_128:
+      attributes:
+        id: wolfcrypt_aes_128
+      children:
+      - children:
+        - attributes:
+            id: BLE_STACK_LIB
+            value: 'true'
+          type: Dynamic
+        type: Values
+      type: Boolean
+    wolfcrypt_aes_192:
+      attributes:
+        id: wolfcrypt_aes_192
+      children:
+      - children:
+        - attributes:
+            id: BLE_STACK_LIB
+            value: 'false'
+          type: Dynamic
+        type: Values
+      type: Boolean
+    wolfcrypt_aes_256:
+      attributes:
+        id: wolfcrypt_aes_256
+      children:
+      - children:
+        - attributes:
+            id: BLE_STACK_LIB
+            value: 'false'
+          type: Dynamic
+        type: Values
+      type: Boolean
+    wolfcrypt_aes_cbc:
+      attributes:
+        id: wolfcrypt_aes_cbc
+      children:
+      - children:
+        - attributes:
+            id: BLE_STACK_LIB
+            value: 'true'
+          type: Dynamic
+        type: Values
+      type: Boolean
+    wolfcrypt_aes_cbc_hw:
+      attributes:
+        id: wolfcrypt_aes_cbc_hw
+      children:
+      - children:
+        - attributes:
+            id: visible
+          children:
+          - type: Value
+            value: 'true'
+          type: Boolean
+        type: Attributes
+      - children:
+        - attributes:
+            id: BLE_STACK_LIB
+            value: 'true'
+          type: Dynamic
+        type: Values
+      type: Boolean
+    wolfcrypt_aes_ccm:
+      attributes:
+        id: wolfcrypt_aes_ccm
+      children:
+      - children:
+        - attributes:
+            id: BLE_STACK_LIB
+            value: 'false'
+          type: Dynamic
+        type: Values
+      type: Boolean
+    wolfcrypt_aes_ctr:
+      attributes:
+        id: wolfcrypt_aes_ctr
+      children:
+      - children:
+        - attributes:
+            id: BLE_STACK_LIB
+            value: 'false'
+          type: Dynamic
+        type: Values
+      type: Boolean
+    wolfcrypt_aes_ecb:
+      attributes:
+        id: wolfcrypt_aes_ecb
+      children:
+      - children:
+        - attributes:
+            id: BLE_STACK_LIB
+            value: 'false'
+          type: Dynamic
+        type: Values
+      type: Boolean
+    wolfcrypt_aes_ecb_hw:
+      attributes:
+        id: wolfcrypt_aes_ecb_hw
+      children:
+      - children:
+        - attributes:
+            id: BLE_STACK_LIB
+            value: 'false'
+          type: Dynamic
+        type: Values
+      type: Boolean
+    wolfcrypt_aes_gcm:
+      attributes:
+        id: wolfcrypt_aes_gcm
+      children:
+      - children:
+        - attributes:
+            id: BLE_STACK_LIB
+            value: 'false'
+          type: Dynamic
+        type: Values
+      type: Boolean
+    wolfcrypt_aes_hw:
+      attributes:
+        id: wolfcrypt_aes_hw
+      children:
+      - children:
+        - attributes:
+            id: visible
+          children:
+          - type: Value
+            value: 'true'
+          type: Boolean
+        type: Attributes
+      - children:
+        - attributes:
+            id: BLE_STACK_LIB
+            value: 'true'
+          type: Dynamic
+        type: Values
+      type: Boolean
+    wolfcrypt_aes_ofb:
+      attributes:
+        id: wolfcrypt_aes_ofb
+      children:
+      - children:
+        - attributes:
+            id: BLE_STACK_LIB
+            value: 'false'
+          type: Dynamic
+        type: Values
+      type: Boolean
+    wolfcrypt_asn1:
+      attributes:
+        id: wolfcrypt_asn1
+      children:
+      - children:
+        - attributes:
+            id: BLE_STACK_LIB
+            value: 'false'
+          type: Dynamic
+        type: Values
+      type: Boolean
+    wolfcrypt_ecc:
+      attributes:
+        id: wolfcrypt_ecc
+      children:
+      - children:
+        - attributes:
+            id: BLE_STACK_LIB
+            value: 'false'
+          type: Dynamic
+        type: Values
+      type: Boolean
+    wolfcrypt_hmac:
+      attributes:
+        id: wolfcrypt_hmac
+      children:
+      - children:
+        - attributes:
+            id: visible
+          children:
+          - type: Value
+            value: 'true'
+          type: Boolean
+        type: Attributes
+      - children:
+        - attributes:
+            id: BLE_STACK_LIB
+            value: 'false'
+          type: Dynamic
+        type: Values
+      type: Boolean
+    wolfcrypt_hw:
+      attributes:
+        id: wolfcrypt_hw
+      children:
+      - children:
+        - attributes:
+            id: BLE_STACK_LIB
+            value: 'true'
+          type: Dynamic
+        type: Values
+      type: Boolean
+    wolfcrypt_md5:
+      attributes:
+        id: wolfcrypt_md5
+      children:
+      - children:
+        - attributes:
+            id: BLE_STACK_LIB
+            value: 'false'
+          type: Dynamic
+        type: Values
+      type: Boolean
+    wolfcrypt_oaep:
+      attributes:
+        id: wolfcrypt_oaep
+      children:
+      - children:
+        - attributes:
+            id: BLE_STACK_LIB
+            value: 'false'
+          type: Dynamic
+        type: Values
+      type: Boolean
+    wolfcrypt_rsa:
+      attributes:
+        id: wolfcrypt_rsa
+      children:
+      - children:
+        - attributes:
+            id: BLE_STACK_LIB
+            value: 'false'
+          type: Dynamic
+        type: Values
+      type: Boolean
+    wolfcrypt_sha1:
+      attributes:
+        id: wolfcrypt_sha1
+      children:
+      - children:
+        - attributes:
+            id: BLE_STACK_LIB
+            value: 'false'
+          type: Dynamic
+        type: Values
+      type: Boolean
+    wolfcrypt_sha256:
+      attributes:
+        id: wolfcrypt_sha256
+      children:
+      - children:
+        - attributes:
+            id: BLE_STACK_LIB
+            value: 'false'
+          type: Dynamic
+        type: Values
+      type: Boolean
+    wolfcrypt_tdes:
+      attributes:
+        id: wolfcrypt_tdes
+      children:
+      - children:
+        - attributes:
+            id: BLE_STACK_LIB
+            value: 'false'
+          type: Dynamic
+        type: Values
+      type: Boolean
+  userData: {}

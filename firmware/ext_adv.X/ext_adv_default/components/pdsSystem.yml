@@ -1,0 +1,53 @@
+configVersion: 1.0.0
+componentName: pdsSystem
+coreVersion: 5.8.2
+device: PIC32WM_BW1
+library: []
+dependency:
+- dependencyPackage: class com.microchip.mcc.harmony.HarmonyModule
+  name: pdsSystem
+  type: module
+  version: ''
+- dependencyPackage: ''
+  name: wireless_pic32cxbz_wbz
+  type: package
+  version: v1.6.0
+customDataClassName: com.microchip.utils_mh3.utils.persistence.CustomModuleData
+data:
+  attachments:
+    children:
+    - children:
+      - attributes:
+          id: NVM_Dependency
+        children:
+        - children:
+          - attributes:
+              id: targetComponentID
+            children:
+            - type: Value
+              value: nvm
+            type: String
+          - attributes:
+              id: targetAttachmentID
+            children:
+            - type: Value
+              value: NVM_MEMORY
+            type: String
+          type: Attributes
+        type: DirectDependency
+      type: Attachments
+    type: pdsSystem
+  elementPosition:
+    attributes:
+      id: __ROOTVIEW
+    children:
+    - children:
+      - attributes:
+          id: pdsSystem
+          x: '512'
+          y: '288'
+        type: ElementPosition
+      type: ElementPositions
+    type: ComponentGraph
+  symbols: {}
+  userData: {}

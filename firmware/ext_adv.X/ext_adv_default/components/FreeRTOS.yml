@@ -1,0 +1,144 @@
+configVersion: 1.0.0
+componentName: FreeRTOS
+coreVersion: 5.8.2
+device: PIC32WM_BW1
+library: []
+dependency:
+- dependencyPackage: class com.microchip.mcc.harmony.HarmonyModule
+  name: FreeRTOS
+  type: module
+  version: ''
+- dependencyPackage: ''
+  name: FreeRTOS-Kernel
+  type: package
+  version: V11.2.0
+- dependencyPackage: ''
+  name: core
+  type: package
+  version: v3.15.5
+customDataClassName: com.microchip.utils_mh3.utils.persistence.CustomModuleData
+data:
+  attachments: {}
+  elementPosition:
+    attributes:
+      id: __ROOTVIEW
+    children:
+    - children:
+      - attributes:
+          id: FreeRTOS
+          x: '29'
+          y: '198'
+        type: ElementPosition
+      type: ElementPositions
+    type: ComponentGraph
+  symbols:
+    FREERTOS_CPU_CLOCK_HZ:
+      attributes:
+        id: FREERTOS_CPU_CLOCK_HZ
+      children:
+      - children:
+        - attributes:
+            id: FreeRTOS
+            value: '64000000'
+          type: Dynamic
+        type: Values
+      type: Integer
+    FREERTOS_EXPECTED_IDLE_TIME_BEFORE_SLEEP:
+      attributes:
+        id: FREERTOS_EXPECTED_IDLE_TIME_BEFORE_SLEEP
+      children:
+      - children:
+        - attributes:
+            id: visible
+          children:
+          - type: Value
+            value: 'true'
+          type: Boolean
+        type: Attributes
+      - children:
+        - attributes:
+            id: pic32cx_bz2_devsupport
+            value: '5'
+          type: Dynamic
+        type: Values
+      type: Integer
+    FREERTOS_IDLE_HOOK:
+      attributes:
+        id: FREERTOS_IDLE_HOOK
+      children:
+      - children:
+        - attributes:
+            id: pic32cx_bz2_devsupport
+            value: 'true'
+          type: Dynamic
+        type: Values
+      type: Boolean
+    FREERTOS_MEMORY_MANAGEMENT_CHOICE:
+      attributes:
+        id: FREERTOS_MEMORY_MANAGEMENT_CHOICE
+      children:
+      - children:
+        - attributes:
+            id: pic32cx_bz2_devsupport
+            value: Heap_4
+          type: Dynamic
+        type: Values
+      type: Combo
+    FREERTOS_MINIMAL_STACK_SIZE:
+      attributes:
+        id: FREERTOS_MINIMAL_STACK_SIZE
+      children:
+      - children:
+        - attributes:
+            id: pic32cx_bz2_devsupport
+            value: '256'
+          type: Dynamic
+        type: Values
+      type: Integer
+    FREERTOS_TICKLESS_IDLE_CHOICE:
+      attributes:
+        id: FREERTOS_TICKLESS_IDLE_CHOICE
+      children:
+      - children:
+        - attributes:
+            id: pic32cx_bz2_devsupport
+            value: Tickless_Idle
+          type: Dynamic
+        type: Values
+      type: Combo
+    FREERTOS_TICK_HOOK:
+      attributes:
+        id: FREERTOS_TICK_HOOK
+      children:
+      - children:
+        - attributes:
+            id: pic32cx_bz2_devsupport
+            value: 'true'
+          type: Dynamic
+        - attributes:
+            value: 'false'
+          type: User
+        type: Values
+      type: Boolean
+    FREERTOS_USE_QUEUE_SETS:
+      attributes:
+        id: FREERTOS_USE_QUEUE_SETS
+      children:
+      - children:
+        - attributes:
+            id: pic32cx_bz2_devsupport
+            value: 'true'
+          type: Dynamic
+        type: Values
+      type: Boolean
+    FREERTOS_INCLUDE_XTASKABORTDELAY:
+      attributes:
+        id: FREERTOS_INCLUDE_XTASKABORTDELAY
+      children:
+      - children:
+        - attributes:
+            value: 'true'
+          type: User
+        type: Values
+      type: Boolean
+  userData: {}
