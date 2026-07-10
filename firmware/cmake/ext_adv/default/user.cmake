@@ -1,0 +1,10 @@
+# Override compiler to XC32 v5.10
+set(CMAKE_C_COMPILER "/opt/microchip/xc32/v5.10/bin/xc32-gcc" CACHE FILEPATH "" FORCE)
+set(CMAKE_CXX_COMPILER "/opt/microchip/xc32/v5.10/bin/xc32-g++" CACHE FILEPATH "" FORCE)
+set(CMAKE_ASM_COMPILER "/opt/microchip/xc32/v5.10/bin/xc32-gcc" CACHE FILEPATH "" FORCE)
+set(CMAKE_AR "/opt/microchip/xc32/v5.10/bin/xc32-ar" CACHE FILEPATH "" FORCE)
+set(MP_CC "/opt/microchip/xc32/v5.10/bin/xc32-gcc" CACHE PATH "" FORCE)
+set(MP_CC_DIR "/opt/microchip/xc32/v5.10/bin" CACHE PATH "" FORCE)
+set(MP_LD "/opt/microchip/xc32/v5.10/bin/xc32-ld" CACHE FILEPATH "" FORCE)
+set(OBJCOPY "/opt/microchip/xc32/v5.10/bin/xc32-objcopy" CACHE FILEPATH "" FORCE)
+set(OBJDUMP "/opt/microchip/xc32/v5.10/bin/xc32-objdump" CACHE FILEPATH "" FORCE)

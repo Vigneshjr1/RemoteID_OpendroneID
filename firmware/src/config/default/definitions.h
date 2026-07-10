@@ -48,10 +48,18 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
+#include "configuration.h"
 #include "crypto/crypto.h"
 #include "ble/lib/include/bt_sys.h"
 #include <string.h>
-#include "peripheral/sercom/usart/plib_sercom0_usart.h"
+#include "peripheral/sercom/usart/plib_sercom1_usart.h"
+#ifndef ODID_WIFI_DISABLE
+#include "driver/wifi/wincs02/include/wdrv_winc_api.h"
+#include "peripheral/eic/plib_eic.h"
+#include "peripheral/qspi/plib_qspi_spi.h"
+#endif
+#include "peripheral/tc/plib_tc0.h"
+#include "system/time/sys_time.h"
 /*******************************************************************************
 * Copyright (C) 2022 Microchip Technology Inc. and its subsidiaries.
 *
@@ -253,6 +261,10 @@ Remarks:
 
 typedef struct
 {
+#ifndef ODID_WIFI_DISABLE
+    SYS_MODULE_OBJ  drvWifiWinc;
+#endif
+    SYS_MODULE_OBJ  sysTime;
     SYS_MODULE_OBJ  sysConsole0;
 
 

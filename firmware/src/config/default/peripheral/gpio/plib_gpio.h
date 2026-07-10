@@ -219,6 +219,19 @@ static inline void GPIO_PinOutputEnable(GPIO_PIN pin)
 }
 
 
+/*** Macros for WDRV_WINC_RESETN pin (PB1) ***/
+#define WDRV_WINC_RESETN_Set()               (GPIOB_REGS->GPIO_LATSET = (1U<<1U))
+#define WDRV_WINC_RESETN_Clear()             (GPIOB_REGS->GPIO_LATCLR = (1U<<1U))
+#define WDRV_WINC_RESETN_Toggle()            (GPIOB_REGS->GPIO_LATINV= (1U<<1U))
+#define WDRV_WINC_RESETN_Get()               ((GPIOB_REGS->GPIO_PORT >> 1U) & 0x1U)
+#define WDRV_WINC_RESETN_OutputEnable()      (GPIOB_REGS->GPIO_TRISCLR = (1U<<1U))
+#define WDRV_WINC_RESETN_InputEnable()       (GPIOB_REGS->GPIO_TRISSET = (1U<<1U))
+#define WDRV_WINC_RESETN_PIN                  GPIO_PIN_RB1
+
+/*** Macros for WDRV_WINC_INT pin (PB4) ***/
+#define WDRV_WINC_INT_Get()                  ((GPIOB_REGS->GPIO_PORT >> 4U) & 0x1U)
+#define WDRV_WINC_INT_PIN                    GPIO_PIN_RB4
+
 // DOM-IGNORE-BEGIN
 #ifdef __cplusplus  // Provide C++ Compatibility
 

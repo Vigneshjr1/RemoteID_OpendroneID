@@ -95,7 +95,7 @@
 #pragma config SMCLR =      NO_POR
 #pragma config QSCHE_EN =      OFF
 #pragma config QSPI_HSEN =      PPS
-#pragma config SCOM0_HSEN =      DIRECT
+#pragma config SCOM0_HSEN =      PPS
 #pragma config SCOM1_HSEN =      PPS
 #pragma config SCOM2_HSEN =      PPS
 #pragma config CCL_OE =      ON
@@ -165,7 +165,34 @@
 /* MISRA C-2012 Rule 11.3 - Deviation record ID - H3_MISRAC_2012_R_11_3_DR_1 */
 /* MISRA C-2012 Rule 11.8 - Deviation record ID - H3_MISRAC_2012_R_11_8_DR_1 */
 
+#ifndef ODID_WIFI_DISABLE
+static const WDRV_WINC_SPI_CFG wdrvWincSpiInitData =
+{
+    .writeRead          = (WDRV_WINC_SPI_PLIB_WRITE_READ)QSPI_WriteRead,
+    .callbackRegister   = (WDRV_WINC_SPI_PLIB_CALLBACK_REGISTER)QSPI_CallbackRegister,
+};
 
+static const WDRV_WINC_SYS_INIT wdrvWincInitData = {
+    .pSPICfg    = &wdrvWincSpiInitData,
+    .intSrc     = EIC_PIN_0
+};
+#endif
+
+static const SYS_TIME_PLIB_INTERFACE sysTimePlibAPI = {
+    .timerCallbackSet = (SYS_TIME_PLIB_CALLBACK_REGISTER)TC0_TimerCallbackRegister,
+    .timerStart = (SYS_TIME_PLIB_START)TC0_TimerStart,
+    .timerStop = (SYS_TIME_PLIB_STOP)TC0_TimerStop,
+    .timerFrequencyGet = (SYS_TIME_PLIB_FREQUENCY_GET)TC0_TimerFrequencyGet,
+    .timerPeriodSet = (SYS_TIME_PLIB_PERIOD_SET)TC0_Timer16bitPeriodSet,
+    .timerCompareSet = (SYS_TIME_PLIB_COMPARE_SET)TC0_Timer16bitCompareSet,
+    .timerCounterGet = (SYS_TIME_PLIB_COUNTER_GET)TC0_Timer16bitCounterGet,
+};
+
+static const SYS_TIME_INIT sysTimeInitData =
+{
+    .timePlib = &sysTimePlibAPI,
+    .hwTimerIntNum = TC0_IRQn,
+};
 
 // *****************************************************************************
 // *****************************************************************************
@@ -247,12 +274,12 @@ OSAL_API_LIST_TYPE     osalAPIList;
 
 static const SYS_CONSOLE_UART_PLIB_INTERFACE sysConsole0UARTPlibAPI =
 {
-    .read_t = (SYS_CONSOLE_UART_PLIB_READ)SERCOM0_USART_Read,
-    .readCountGet = (SYS_CONSOLE_UART_PLIB_READ_COUNT_GET)SERCOM0_USART_ReadCountGet,
-    .readFreeBufferCountGet = (SYS_CONSOLE_UART_PLIB_READ_FREE_BUFFFER_COUNT_GET)SERCOM0_USART_ReadFreeBufferCountGet,
-    .write_t = (SYS_CONSOLE_UART_PLIB_WRITE)SERCOM0_USART_Write,
-    .writeCountGet = (SYS_CONSOLE_UART_PLIB_WRITE_COUNT_GET)SERCOM0_USART_WriteCountGet,
-    .writeFreeBufferCountGet = (SYS_CONSOLE_UART_PLIB_WRITE_FREE_BUFFER_COUNT_GET)SERCOM0_USART_WriteFreeBufferCountGet,
+    .read_t = (SYS_CONSOLE_UART_PLIB_READ)SERCOM1_USART_Read,
+    .readCountGet = (SYS_CONSOLE_UART_PLIB_READ_COUNT_GET)SERCOM1_USART_ReadCountGet,
+    .readFreeBufferCountGet = (SYS_CONSOLE_UART_PLIB_READ_FREE_BUFFFER_COUNT_GET)SERCOM1_USART_ReadFreeBufferCountGet,
+    .write_t = (SYS_CONSOLE_UART_PLIB_WRITE)SERCOM1_USART_Write,
+    .writeCountGet = (SYS_CONSOLE_UART_PLIB_WRITE_COUNT_GET)SERCOM1_USART_WriteCountGet,
+    .writeFreeBufferCountGet = (SYS_CONSOLE_UART_PLIB_WRITE_FREE_BUFFER_COUNT_GET)SERCOM1_USART_WriteFreeBufferCountGet,
 };
 
 static const SYS_CONSOLE_UART_INIT_DATA sysConsole0UARTInitData =
@@ -408,7 +435,7 @@ void SYS_Initialize ( void* data )
 
 	GPIO_Initialize();
 
-    SERCOM0_USART_Initialize();
+    SERCOM1_USART_Initialize();
 
     EVSYS_Initialize();
 
@@ -416,6 +443,17 @@ void SYS_Initialize ( void* data )
 
     NVM_Initialize();
 
+    #ifndef ODID_WIFI_DISABLE
+    EIC_Initialize();
+
+    QSPI_Initialize();
+
+    TC0_TimerInitialize();
+
+    sysObj.sysTime = SYS_TIME_Initialize(SYS_TIME_INDEX_0, (SYS_MODULE_INIT *)&sysTimeInitData);
+
+    sysObj.drvWifiWinc = WDRV_WINC_Initialize(0, (SYS_MODULE_INIT*)&wdrvWincInitData);
+    #endif
 
     /* MISRAC 2012 deviation block start */
     /* Following MISRA-C rules deviated in this block  */

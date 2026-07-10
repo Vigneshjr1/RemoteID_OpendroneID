@@ -64,8 +64,10 @@ void GPIO_Initialize ( void )
 
 
     /* PPS Input Remapping */
+    PPS_REGS->PPS_SCOM1P1R = 1U;    /* PA6 -> SERCOM1 PAD1 (RX) */
 
     /* PPS Output Remapping */
+    PPS_REGS->PPS_RPA5G3R = 5U;     /* SERCOM1 PAD0 (TX) -> PA5 */
 
 
 }

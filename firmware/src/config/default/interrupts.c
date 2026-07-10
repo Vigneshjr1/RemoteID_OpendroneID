@@ -81,6 +81,9 @@ void __attribute__((optimize("-O1"), long_call, noreturn, used))Dummy_Handler(vo
 /* MISRAC 2012 deviation block start */
 /* MISRA C-2012 Rule 8.6 deviated 37 times.  Deviation record ID -  H3_MISRAC_2012_R_8_6_DR_1 */
 /* Device vectors list dummy definition*/
+#ifndef ODID_WIFI_DISABLE
+extern void EIC_InterruptHandler       ( void );
+#endif
 extern void EIC_Handler                ( void ) __attribute__((weak, alias("Dummy_Handler"),noreturn));
 extern void FREQM_Handler              ( void ) __attribute__((weak, alias("Dummy_Handler"),noreturn));
 extern void CHANGE_NOTICE_A_Handler    ( void ) __attribute__((weak, alias("Dummy_Handler"),noreturn));
@@ -91,7 +94,7 @@ extern void EVSYS_0_3_Handler          ( void ) __attribute__((weak, alias("Dumm
 extern void EVSYS_4_11_Handler         ( void ) __attribute__((weak, alias("Dummy_Handler"),noreturn));
 extern void PAC_Handler                ( void ) __attribute__((weak, alias("Dummy_Handler"),noreturn));
 extern void RAMECC_Handler             ( void ) __attribute__((weak, alias("Dummy_Handler"),noreturn));
-extern void SERCOM1_Handler            ( void ) __attribute__((weak, alias("Dummy_Handler"),noreturn));
+extern void SERCOM1_USART_InterruptHandler ( void );
 extern void SERCOM2_Handler            ( void ) __attribute__((weak, alias("Dummy_Handler"),noreturn));
 extern void SERCOM3_Handler            ( void ) __attribute__((weak, alias("Dummy_Handler"),noreturn));
 extern void TCC0_Handler               ( void ) __attribute__((weak, alias("Dummy_Handler"),noreturn));
@@ -107,6 +110,10 @@ extern void AES_Handler                ( void ) __attribute__((weak, alias("Dumm
 extern void TRNG_Handler               ( void ) __attribute__((weak, alias("Dummy_Handler"),noreturn));
 extern void ICM_Handler                ( void ) __attribute__((weak, alias("Dummy_Handler"),noreturn));
 extern void PUKCC_Handler              ( void ) __attribute__((weak, alias("Dummy_Handler"),noreturn));
+#ifndef ODID_WIFI_DISABLE
+extern void QSPI_InterruptHandler      ( void );
+extern void TC0_TimerInterruptHandler  ( void );
+#endif
 extern void QSPI_Handler               ( void ) __attribute__((weak, alias("Dummy_Handler"),noreturn));
 extern void ZB_INT0_Handler            ( void ) __attribute__((weak, alias("Dummy_Handler"),noreturn));
 extern void BT_INT0_Handler            ( void ) __attribute__((weak, alias("Dummy_Handler"),noreturn));
@@ -143,7 +150,11 @@ const H3DeviceVectors exception_table=
     .pfnPendSV_Handler             = xPortPendSVHandler,
     .pfnSysTick_Handler            = xPortSysTickHandler,
     .pfnRTC_Handler                = RTC_InterruptHandler,
+#ifndef ODID_WIFI_DISABLE
+    .pfnEIC_Handler                = EIC_InterruptHandler,
+#else
     .pfnEIC_Handler                = EIC_Handler,
+#endif
     .pfnFREQM_Handler              = FREQM_Handler,
     .pfnFLASH_CONTROL_Handler      = NVM_InterruptHandler,
     .pfnCHANGE_NOTICE_A_Handler    = CHANGE_NOTICE_A_Handler,
@@ -154,14 +165,18 @@ const H3DeviceVectors exception_table=
     .pfnEVSYS_4_11_Handler         = EVSYS_4_11_Handler,
     .pfnPAC_Handler                = PAC_Handler,
     .pfnRAMECC_Handler             = RAMECC_Handler,
-    .pfnSERCOM0_Handler            = SERCOM0_USART_InterruptHandler,
-    .pfnSERCOM1_Handler            = SERCOM1_Handler,
+    .pfnSERCOM0_Handler            = Dummy_Handler,
+    .pfnSERCOM1_Handler            = SERCOM1_USART_InterruptHandler,
     .pfnSERCOM2_Handler            = SERCOM2_Handler,
     .pfnSERCOM3_Handler            = SERCOM3_Handler,
     .pfnTCC0_Handler               = TCC0_Handler,
     .pfnTCC1_Handler               = TCC1_Handler,
     .pfnTCC2_Handler               = TCC2_Handler,
+#ifndef ODID_WIFI_DISABLE
+    .pfnTC0_Handler                = TC0_TimerInterruptHandler,
+#else
     .pfnTC0_Handler                = TC0_Handler,
+#endif
     .pfnTC1_Handler                = TC1_Handler,
     .pfnTC2_Handler                = TC2_Handler,
     .pfnTC3_Handler                = TC3_Handler,
@@ -171,7 +186,11 @@ const H3DeviceVectors exception_table=
     .pfnTRNG_Handler               = TRNG_Handler,
     .pfnICM_Handler                = ICM_Handler,
     .pfnPUKCC_Handler              = PUKCC_Handler,
+#ifndef ODID_WIFI_DISABLE
+    .pfnQSPI_Handler               = QSPI_InterruptHandler,
+#else
     .pfnQSPI_Handler               = QSPI_Handler,
+#endif
     .pfnZB_INT0_Handler            = ZB_INT0_Handler,
     .pfnBT_INT0_Handler            = BT_INT0_Handler,
     .pfnBT_INT1_Handler            = BT_INT1_Handler,

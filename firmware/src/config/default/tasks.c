@@ -67,10 +67,27 @@
 /* Handle for the APP_Tasks. */
 TaskHandle_t xAPP_Tasks;
 
+#ifndef ODID_WIFI_DISABLE
+static void lWDRV_WINC_Tasks(void *pvParameters)
+{
+    while(1)
+    {
+        SYS_STATUS status;
 
+        WDRV_WINC_Tasks(sysObj.drvWifiWinc);
+
+        status = WDRV_WINC_Status(sysObj.drvWifiWinc);
+
+        if ((SYS_STATUS_ERROR == status) || (SYS_STATUS_UNINITIALIZED == status) || (SYS_STATUS_BUSY != status))
+        {
+            vTaskDelay(50 / portTICK_PERIOD_MS);
+        }
+    }
+}
+#endif
 
 static void lAPP_Tasks(  void *pvParameters  )
-{   
+{
     while(true)
     {
         APP_Tasks();
@@ -100,7 +117,10 @@ void SYS_Tasks ( void )
 
 
     /* Maintain Device Drivers */
-    
+    #ifndef ODID_WIFI_DISABLE
+    xTaskCreate(lWDRV_WINC_Tasks, "WDRV_WINC_Tasks",
+        WDRV_WINC_RTOS_STACK_SIZE, NULL, WDRV_WINC_RTOS_TASK_PRIORITY, NULL);
+    #endif
 
     /* Maintain Middleware & Other Libraries */
     

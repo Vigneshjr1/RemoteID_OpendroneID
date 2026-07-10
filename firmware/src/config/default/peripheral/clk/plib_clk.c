@@ -194,7 +194,7 @@ void CLOCK_Initialize( void )
 
 
     CFG_REGS->CFG_PMD1 = 0x200001cdU;
-    CFG_REGS->CFG_PMD3 = 0x7ffeU;
+    CFG_REGS->CFG_PMD3 = 0x7ffcU;
 
 
     /* Lock system since done with clock configuration */

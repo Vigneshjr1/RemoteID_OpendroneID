@@ -1,24 +1,19 @@
 #include <string.h>
+#include <stdio.h>
 #include "odid_mavlink.h"
+#include "definitions.h"
 #include "FreeRTOS.h"
-#include "semphr.h"
-
-// MAVLink configuration - must be before including mavlink.h
-#define MAVLINK_USE_CONVENIENCE_FUNCTIONS
-#define MAVLINK_SEND_UART_BYTES(chan, buf, len) // TX not needed for RX-only
 
 #include "third_party/mavlink/common/mavlink.h"
 
 static ODID_UAS_Data s_uasData;
-static SemaphoreHandle_t s_dataMutex;
-static bool s_hasValidData;
+static volatile bool s_hasValidData;
 static mavlink_message_t s_mavMsg;
 static mavlink_status_t s_mavStatus;
 
 void ODID_MAVLink_Init(void)
 {
     odid_initUasData(&s_uasData);
-    s_dataMutex = xSemaphoreCreateMutex();
     s_hasValidData = false;
     memset(&s_mavMsg, 0, sizeof(s_mavMsg));
     memset(&s_mavStatus, 0, sizeof(s_mavStatus));
@@ -26,10 +21,6 @@ void ODID_MAVLink_Init(void)
 
 static void ODID_HandleMavlinkMessage(mavlink_message_t *msg)
 {
-    if (xSemaphoreTake(s_dataMutex, pdMS_TO_TICKS(10)) != pdTRUE) {
-        return;
-    }
-
     switch (msg->msgid) {
         case MAVLINK_MSG_ID_OPEN_DRONE_ID_BASIC_ID: {
             mavlink_open_drone_id_basic_id_t basic_id;
@@ -114,16 +105,25 @@ static void ODID_HandleMavlinkMessage(mavlink_message_t *msg)
         default:
             break;
     }
-
-    xSemaphoreGive(s_dataMutex);
 }
+
+static volatile uint32_t s_byteCount = 0;
+static volatile uint8_t s_parseResult = 0;
 
 void ODID_MAVLink_ProcessByte(uint8_t byte)
 {
-    if (mavlink_parse_char(MAVLINK_COMM_0, byte, &s_mavMsg, &s_mavStatus)) {
-        ODID_HandleMavlinkMessage(&s_mavMsg);
+    s_byteCount++;
+    uint8_t result = mavlink_frame_char(MAVLINK_COMM_0, byte, &s_mavMsg, &s_mavStatus);
+    if (result != MAVLINK_FRAMING_INCOMPLETE) {
+        s_parseResult = result;
+        if (result == MAVLINK_FRAMING_OK) {
+            ODID_HandleMavlinkMessage(&s_mavMsg);
+        }
     }
 }
+
+uint32_t ODID_MAVLink_GetByteCount(void) { return s_byteCount; }
+uint8_t ODID_MAVLink_GetParseResult(void) { return s_parseResult; }
 
 ODID_UAS_Data* ODID_MAVLink_GetUasData(void)
 {

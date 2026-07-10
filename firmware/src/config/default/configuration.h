@@ -98,6 +98,34 @@ extern "C" {
 // *****************************************************************************
 // *****************************************************************************
 
+#define ODID_WIFI_DISABLE
+
+/*** WiFi WINC Driver Configuration ***/
+#define WDRV_WINC_EIC_SOURCE
+#define WDRV_WINC_DEVICE_USE_SYS_DEBUG
+#define WDRV_WINC_RTOS_STACK_SIZE           1024
+#define WDRV_WINC_RTOS_TASK_PRIORITY        1
+#define WDRV_WINC_DEV_RX_BUFF_SZ            2048
+#define WINC_SOCK_SLAB_ALLOC_MODE           1
+#define WDRV_WINC_DEV_SOCK_SLAB_NUM         1
+#define WDRV_WINC_DEV_SOCK_SLAB_SZ          1472
+#define WINC_SOCK_NUM_SOCKETS               1
+#define WINC_SOCK_BUF_RX_SZ                 1024
+#define WINC_SOCK_BUF_TX_SZ                 1024
+#define WINC_SOCK_BUF_RX_PKT_BUF_NUM        3
+#define WINC_SOCK_BUF_TX_PKT_BUF_NUM        2
+#define WDRV_WINC_MOD_DISABLE_OTA
+#define WDRV_WINC_MOD_DISABLE_SYSLOG
+
+/*** System Time Configuration ***/
+#define SYS_TIME_INDEX_0                            (0)
+#define SYS_TIME_MAX_TIMERS                         (5)
+#define SYS_TIME_HW_COUNTER_WIDTH                   (16)
+#define SYS_TIME_HW_COUNTER_PERIOD                  (0xFFFFU)
+#define SYS_TIME_HW_COUNTER_HALF_PERIOD             (SYS_TIME_HW_COUNTER_PERIOD>>1)
+#define SYS_TIME_CPU_CLOCK_FREQUENCY                (64000000)
+#define SYS_TIME_COMPARE_UPDATE_EXECUTION_CYCLES    (232)
+
 
 // *****************************************************************************
 // *****************************************************************************

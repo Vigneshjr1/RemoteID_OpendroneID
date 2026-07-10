@@ -54,6 +54,8 @@
 #include <string.h>
 #include "app.h"
 #include "definitions.h"
+#include "FreeRTOS.h"
+#include "task.h"
 #include "app_ble.h"
 #include "app_odid/odid_ble.h"
 #include "app_odid/odid_mavlink.h"
@@ -90,6 +92,7 @@
 
 APP_DATA appData;
 
+
 // *****************************************************************************
 // *****************************************************************************
 // Section: Application Callback Functions
@@ -122,22 +125,9 @@ APP_DATA appData;
 void GPIO_LED_Initialize ( void )
 {
     CFG_REGS->CFG_CFGCON0CLR = CFG_CFGCON0_JTAGEN_Msk;
-          /* PORTA Initialization */
-    /* PORTB Initialization */
-
-
-    /* PPS Input Remapping */
-
-    /* PPS Output Remapping */
- /*  PA  */
-    GPIOA_REGS->GPIO_TRISSET = 0xFFFF; //Set all pins as input
 
     /*  PB  */
-    GPIOB_REGS->GPIO_ANSELSET = 0x0040; //PB6 ANSEL for Temp sensor
-    GPIOB_REGS->GPIO_TRISSET = 0xFFFF;  //Set all pins as input
-    GPIOB_REGS->GPIO_CNPUSET = 0xF882;  //Pull up: PRB 1, 2, 7, 11, 12 , 13 ,14 , 15
     GPIOB_REGS->GPIO_CNPDSET = 0x002C;  //Pull down RB2,3,5 for LED
-
 }
 
 /*******************************************************************************
@@ -196,12 +186,11 @@ void APP_Tasks ( void )
             ODID_MAVLink_Init();
             ODID_UART_Init();
 
-            // Load test data for BLE verification (remove when using live MAVLink)
-            ODID_Test_PopulateData(ODID_MAVLink_GetUasData());
+            // Live MAVLink data from UART drives BLE content
 
             ODID_BLE_StartAdvertising();
 
-            SERCOM0_USART_Write((uint8_t *)"ODID Started\r\n", 14);
+            SERCOM1_USART_Write((uint8_t *)"ODID Started\r\n", 14);
 
             if (appInitialized)
             {
@@ -212,7 +201,8 @@ void APP_Tasks ( void )
 
         case APP_STATE_SERVICE_TASKS:
         {
-            if (OSAL_QUEUE_Receive(&appData.appQueue, &appMsg, OSAL_WAIT_FOREVER))
+
+            if (OSAL_QUEUE_Receive(&appData.appQueue, &appMsg, pdMS_TO_TICKS(1)))
             {
                 if(p_appMsg->msgId == APP_MSG_BLE_STACK_EVT)
                 {
