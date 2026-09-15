@@ -62,10 +62,16 @@ void NVIC_Initialize( void )
     NVIC_SetPriority(SysTick_IRQn, 7);
     NVIC_SetPriority(RTC_IRQn, 7);
     NVIC_EnableIRQ(RTC_IRQn);
+    NVIC_SetPriority(EIC_IRQn, 7);
+    NVIC_EnableIRQ(EIC_IRQn);
     NVIC_SetPriority(FLASH_CONTROL_IRQn, 7);
     NVIC_EnableIRQ(FLASH_CONTROL_IRQn);
     NVIC_SetPriority(SERCOM1_IRQn, 7);
     NVIC_EnableIRQ(SERCOM1_IRQn);
+    NVIC_SetPriority(TC0_IRQn, 7);
+    NVIC_EnableIRQ(TC0_IRQn);
+    NVIC_SetPriority(QSPI_IRQn, 7);
+    NVIC_EnableIRQ(QSPI_IRQn);
 
     /* Enable Usage fault */
     SCB->SHCSR |= (SCB_SHCSR_USGFAULTENA_Msk);

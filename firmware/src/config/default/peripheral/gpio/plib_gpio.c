@@ -60,11 +60,14 @@ void GPIO_Initialize ( void )
 {
     /* PORTA Initialization */
     /* PORTB Initialization */
-    GPIOB_REGS->GPIO_ANSELCLR = 0x80U; /* Digital Mode Enable */
+    GPIOB_REGS->GPIO_LAT = 0x2U; /* WINCS02 reset inactive; QSPI owns its direct pins */
+    GPIOB_REGS->GPIO_TRISCLR = 0xaeU; /* Direction Control */
+    GPIOB_REGS->GPIO_ANSELCLR = 0xbfU; /* Digital Mode Enable */
 
 
     /* PPS Input Remapping */
     PPS_REGS->PPS_SCOM1P1R = 1U;    /* PA6 -> SERCOM1 PAD1 (RX) */
+    PPS_REGS->PPS_EXTINT0R = 5U;     /* WINCS02 interrupt */
 
     /* PPS Output Remapping */
     PPS_REGS->PPS_RPA5G3R = 5U;     /* SERCOM1 PAD0 (TX) -> PA5 */

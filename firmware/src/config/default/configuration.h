@@ -98,13 +98,16 @@ extern "C" {
 // *****************************************************************************
 // *****************************************************************************
 
-#define ODID_WIFI_DISABLE
+/* Broadcast the built-in Remote ID fixture when no MAVLink source is connected. */
+#define ODID_USE_TEST_DATA
+#define ODID_WIFI_REG_DOMAIN  "GEN"
+
 
 /*** WiFi WINC Driver Configuration ***/
 #define WDRV_WINC_EIC_SOURCE
 #define WDRV_WINC_DEVICE_USE_SYS_DEBUG
 #define WDRV_WINC_RTOS_STACK_SIZE           1024
-#define WDRV_WINC_RTOS_TASK_PRIORITY        1
+#define WDRV_WINC_RTOS_TASK_PRIORITY        2
 #define WDRV_WINC_DEV_RX_BUFF_SZ            2048
 #define WINC_SOCK_SLAB_ALLOC_MODE           1
 #define WDRV_WINC_DEV_SOCK_SLAB_NUM         1

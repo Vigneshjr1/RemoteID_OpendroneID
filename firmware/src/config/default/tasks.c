@@ -82,6 +82,10 @@ static void lWDRV_WINC_Tasks(void *pvParameters)
         {
             vTaskDelay(50 / portTICK_PERIOD_MS);
         }
+        else
+        {
+            vTaskDelay(1);
+        }
     }
 }
 #endif
@@ -91,6 +95,7 @@ static void lAPP_Tasks(  void *pvParameters  )
     while(true)
     {
         APP_Tasks();
+        vTaskDelay(50U / portTICK_PERIOD_MS);
     }
 }
 
@@ -124,8 +129,10 @@ void SYS_Tasks ( void )
 
     /* Maintain Middleware & Other Libraries */
     
+#ifndef ODID_WIFI_ONLY_TEST
     if (xTaskCreate(BM_Task,     "BLE", TASK_BLE_STACK_SIZE, NULL  , TASK_BLE_PRIORITY, NULL) != pdPASS)
         while (1);
+#endif
 
 
 
@@ -135,7 +142,7 @@ void SYS_Tasks ( void )
     (void) xTaskCreate(
            (TaskFunction_t) lAPP_Tasks,
            "APP_Tasks",
-           1024,
+            1280,
            NULL,
            1U ,
            &xAPP_Tasks);

@@ -149,7 +149,7 @@ void CLOCK_Initialize( void )
 
 
     /* OSWEN    = SWITCH_COMPLETE    */
-    /* SOSCEN   = ON   */
+    /* SOSCEN   = OFF   */
     /* CF       = NO_FAILDET       */
     /* SLPEN    = IDLE    */
     /* CLKLOCK  = UNLOCKED  */
@@ -157,7 +157,7 @@ void CLOCK_Initialize( void )
     /* WAKE2SPD = SELECTED_CLK */
     /* DRMEN    = NO_EFFECT    */
     /* FRCDIV   = DIV_1   */
-    CRU_REGS->CRU_OSCCON = 0x102U;
+    CRU_REGS->CRU_OSCCON = 0x100U;
 
     CRU_REGS->CRU_OSCCONSET = CRU_OSCCON_OSWEN_Msk;  /* request oscillator switch to occur */
 
@@ -186,15 +186,15 @@ void CLOCK_Initialize( void )
 
 
     /* Peripheral Clock Generators */
-    CFG_REGS->CFG_CFGPCLKGEN1 = 0x9000U;
+    CFG_REGS->CFG_CFGPCLKGEN1 = 0x99009U;
     CFG_REGS->CFG_CFGPCLKGEN2 = 0x0U;
-    CFG_REGS->CFG_CFGPCLKGEN3 = 0x0U;
+    CFG_REGS->CFG_CFGPCLKGEN3 = 0x9000000U;
 
     /* Peripheral Module Disable Configuration */
 
 
-    CFG_REGS->CFG_PMD1 = 0x200001cdU;
-    CFG_REGS->CFG_PMD3 = 0x7ffcU;
+    CFG_REGS->CFG_PMD1 = 0x101cfU;
+    CFG_REGS->CFG_PMD3 = 0x0U;
 
 
     /* Lock system since done with clock configuration */
@@ -203,6 +203,10 @@ void CLOCK_Initialize( void )
     // Change src_clk source to PLL CLK
     BTZBSYS_REGS->BTZBSYS_SUBSYS_CNTRL_REG1 |= 0x00000010U;
 
-    // set aclb_reset_n[24], bt_en_main_clk[20]
+    // set aclb_reset_n[24]; BLE restores bt_en_main_clk[20] in combined builds
+#ifdef ODID_WIFI_ONLY_TEST
+    BTZBSYS_REGS->BTZBSYS_SUBSYS_CNTRL_REG0 = 0x01000000U;
+#else
     BTZBSYS_REGS->BTZBSYS_SUBSYS_CNTRL_REG0 = 0x01100000U;
+#endif
 }

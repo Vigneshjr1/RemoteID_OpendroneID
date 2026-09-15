@@ -60,6 +60,7 @@
 #include "app_odid/odid_ble.h"
 #include "app_odid/odid_mavlink.h"
 #include "app_odid/odid_uart.h"
+#include "app_odid/odid_wifi.h"
 #include "app_odid/odid_test.h"
 
 
@@ -127,7 +128,7 @@ void GPIO_LED_Initialize ( void )
     CFG_REGS->CFG_CFGCON0CLR = CFG_CFGCON0_JTAGEN_Msk;
 
     /*  PB  */
-    GPIOB_REGS->GPIO_CNPDSET = 0x002C;  //Pull down RB2,3,5 for LED
+    /* RB2, RB3 and RB5 are reserved for WINCS02 QSPI. */
 }
 
 /*******************************************************************************
@@ -176,7 +177,9 @@ void APP_Tasks ( void )
         {
             bool appInitialized = true;
             GPIO_LED_Initialize();
+#ifndef ODID_WIFI_ONLY_TEST
             APP_BleStackInit();
+#endif
             if (!(RTC_REGS->MODE0.RTC_CTRLA & RTC_MODE0_CTRLA_ENABLE_Msk))
             {
                 RTC_Timer32Start();
@@ -186,9 +189,16 @@ void APP_Tasks ( void )
             ODID_MAVLink_Init();
             ODID_UART_Init();
 
-            // Live MAVLink data from UART drives BLE content
+#ifdef ODID_USE_TEST_DATA
+            ODID_Test_PopulateData(ODID_MAVLink_GetUasData());
+#endif
 
+            // The shared ODID data drives both BLE and WiFi broadcasts.
+            ODID_WiFi_Init();
+#ifndef ODID_WIFI_ONLY_TEST
             ODID_BLE_StartAdvertising();
+#endif
+            ODID_WiFi_StartAdvertising();
 
             SERCOM1_USART_Write((uint8_t *)"ODID Started\r\n", 14);
 

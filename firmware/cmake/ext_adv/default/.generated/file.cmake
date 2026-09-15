@@ -25,6 +25,7 @@ set(ext_adv_default_default_XC32_FILE_TYPE_compile
     "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/app_odid/odid_mavlink.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/app_odid/odid_test.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/app_odid/odid_uart.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/app_odid/odid_vsie.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/app_odid/odid_wifi.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/app_user_edits.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/config/default/ble/middleware_ble/ble_dm/ble_dm.c"
