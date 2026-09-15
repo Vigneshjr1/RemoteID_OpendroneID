@@ -3,6 +3,7 @@
 #include "odid_mavlink.h"
 #include "definitions.h"
 #include "FreeRTOS.h"
+#include "semphr.h"
 
 #include "third_party/mavlink/common/mavlink.h"
 
@@ -10,6 +11,7 @@ static ODID_UAS_Data s_uasData;
 static volatile bool s_hasValidData;
 static mavlink_message_t s_mavMsg;
 static mavlink_status_t s_mavStatus;
+static SemaphoreHandle_t s_dataMutex;
 
 void ODID_MAVLink_Init(void)
 {
@@ -17,6 +19,7 @@ void ODID_MAVLink_Init(void)
     s_hasValidData = false;
     memset(&s_mavMsg, 0, sizeof(s_mavMsg));
     memset(&s_mavStatus, 0, sizeof(s_mavStatus));
+    s_dataMutex = xSemaphoreCreateMutex();
 }
 
 static void ODID_HandleMavlinkMessage(mavlink_message_t *msg)
@@ -117,7 +120,14 @@ void ODID_MAVLink_ProcessByte(uint8_t byte)
     if (result != MAVLINK_FRAMING_INCOMPLETE) {
         s_parseResult = result;
         if (result == MAVLINK_FRAMING_OK) {
-            ODID_HandleMavlinkMessage(&s_mavMsg);
+            if (NULL != s_dataMutex) {
+                if (pdTRUE == xSemaphoreTake(s_dataMutex, portMAX_DELAY)) {
+                    ODID_HandleMavlinkMessage(&s_mavMsg);
+                    (void)xSemaphoreGive(s_dataMutex);
+                }
+            } else {
+                ODID_HandleMavlinkMessage(&s_mavMsg);
+            }
         }
     }
 }
@@ -128,6 +138,21 @@ uint8_t ODID_MAVLink_GetParseResult(void) { return s_parseResult; }
 ODID_UAS_Data* ODID_MAVLink_GetUasData(void)
 {
     return &s_uasData;
+}
+
+bool ODID_MAVLink_CopyUasData(ODID_UAS_Data *pSnapshot)
+{
+    if ((NULL == pSnapshot) || (NULL == s_dataMutex)) {
+        return false;
+    }
+
+    if (pdTRUE != xSemaphoreTake(s_dataMutex, portMAX_DELAY)) {
+        return false;
+    }
+
+    memcpy(pSnapshot, &s_uasData, sizeof(*pSnapshot));
+    (void)xSemaphoreGive(s_dataMutex);
+    return true;
 }
 
 bool ODID_MAVLink_HasValidData(void)

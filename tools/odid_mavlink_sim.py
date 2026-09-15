@@ -23,16 +23,27 @@ from pymavlink.dialects.v20 import common as mavlink2
 
 def create_connection(port, baud):
     """Create MAVLink serial connection."""
-    return mavutil.mavlink_connection(
+    connection = mavutil.mavlink_connection(
         port,
         baud=baud,
         source_system=1,
         source_component=1,
         dialect='common'
     )
+    connection.port.dtr = False
+    connection.port.write_timeout = 1.0
+    return connection
 
 
-def send_basic_id(mav, serial_number="SIM-PIC32-TEST01"):
+def drain_board_output(connection):
+    """Read firmware diagnostics so the USB receive endpoint cannot back up."""
+    waiting = connection.port.in_waiting
+    if waiting <= 0:
+        return ""
+    return connection.port.read(waiting).decode("ascii", errors="replace").strip()
+
+
+def send_basic_id(mav, serial_number="MCHP00TEST1234AB"):
     """Send OPEN_DRONE_ID_BASIC_ID message."""
     uas_id = list(serial_number.encode('ascii')[:20].ljust(20, b'\x00'))
 
@@ -61,8 +72,8 @@ def send_location(mav, lat, lon, alt, heading, speed):
         longitude=int(lon * 1e7),
         altitude_barometric=alt,
         altitude_geodetic=alt,
-        height_reference=1,     # ODID_HEIGHT_REF_OVER_GROUND
-        height=alt - 10.0,
+        height_reference=0,     # ODID_HEIGHT_REF_OVER_TAKEOFF
+        height=alt - 100.0,
         horizontal_accuracy=10, # ODID_HOR_ACC_10M
         vertical_accuracy=4,    # ODID_VER_ACC_25M
         barometer_accuracy=4,
@@ -80,16 +91,16 @@ def send_system(mav, operator_lat, operator_lon):
         target_component=0,
         id_or_mac=[0] * 20,
         operator_location_type=0,   # ODID_OPERATOR_LOCATION_TYPE_TAKEOFF
-        classification_type=0,      # ODID_CLASSIFICATION_TYPE_UNDECLARED
+        classification_type=1,      # ODID_CLASSIFICATION_TYPE_EU
         operator_latitude=int(operator_lat * 1e7),
         operator_longitude=int(operator_lon * 1e7),
         area_count=1,
         area_radius=0,
-        area_ceiling=-1000.0,
-        area_floor=-1000.0,
-        category_eu=0,
-        class_eu=0,
-        operator_altitude_geo=15.0,
+        area_ceiling=150.0,
+        area_floor=0.0,
+        category_eu=1,              # ODID_CATEGORY_EU_OPEN
+        class_eu=2,                 # ODID_CLASS_EU_CLASS_1
+        operator_altitude_geo=100.0,
         timestamp=int(time.time())
     )
     mav.mav.send(msg)
@@ -109,7 +120,7 @@ def send_self_id(mav, description="PIC32CX-BW1 ODID Sim"):
     mav.mav.send(msg)
 
 
-def send_operator_id(mav, operator_id="OP-SIM-001"):
+def send_operator_id(mav, operator_id="OP-MCHP-TEST-01"):
     """Send OPEN_DRONE_ID_OPERATOR_ID message."""
     op_id = operator_id.encode('ascii')[:20].ljust(20, b'\x00')
 
@@ -124,16 +135,16 @@ def send_operator_id(mav, operator_id="OP-SIM-001"):
 
 
 def simulate_flight(base_lat, base_lon, elapsed):
-    """Simulate a circular flight path with large visible changes."""
-    radius = 0.005  # ~550m radius - very visible on map
-    speed_factor = 0.3  # radians per second - fast orbit
+    """Simulate a plausible circular flight around the known-good fixture."""
+    radius = 0.0005  # Approximately 55m radius.
+    speed_factor = 0.1
     angle = elapsed * speed_factor
 
     lat = base_lat + radius * math.cos(angle)
     lon = base_lon + radius * math.sin(angle)
     heading = (math.degrees(angle) + 90) % 360
-    alt = 50.0 + 100.0 * math.sin(elapsed * 0.2)  # 50-150m swings
-    speed = 5.0 + 15.0 * abs(math.sin(elapsed * 0.3))  # 5-20 m/s
+    alt = 120.0 + 20.0 * math.sin(elapsed * 0.1)
+    speed = 5.0 + 3.0 * abs(math.sin(elapsed * 0.2))
 
     return lat, lon, alt, heading, speed
 
@@ -143,9 +154,14 @@ def main():
     parser.add_argument('--port', default='/dev/ttyACM0', help='Serial port (default: /dev/ttyACM0)')
     parser.add_argument('--baud', type=int, default=115200, help='Baud rate (default: 115200)')
     parser.add_argument('--rate', type=float, default=1.0, help='Message rate in Hz (default: 1.0)')
-    parser.add_argument('--lat', type=float, default=33.3061, help='Base latitude (default: Chandler AZ)')
-    parser.add_argument('--lon', type=float, default=-111.8413, help='Base longitude (default: Chandler AZ)')
+    parser.add_argument('--lat', type=float, default=33.3025, help='Base latitude (default: test fixture)')
+    parser.add_argument('--lon', type=float, default=-111.8514, help='Base longitude (default: test fixture)')
+    parser.add_argument('--serial-number', default='MCHP00TEST1234AB',
+                        help='20-character maximum UAS serial number')
     args = parser.parse_args()
+
+    if args.rate <= 0:
+        parser.error('--rate must be greater than zero')
 
     print(f"OpenDroneID MAVLink Simulator")
     print(f"  Port: {args.port} @ {args.baud} baud")
@@ -159,34 +175,57 @@ def main():
         print(f"ERROR: Could not open {args.port}: {e}")
         sys.exit(1)
 
-    start_time = time.time()
+    start_time = time.monotonic()
+    next_cycle = start_time
     msg_count = 0
+    next_static_update = start_time
 
     try:
         while True:
-            elapsed = time.time() - start_time
+            elapsed = time.monotonic() - start_time
             lat, lon, alt, heading, speed = simulate_flight(args.lat, args.lon, elapsed)
+            board_output = drain_board_output(mav)
 
-            send_basic_id(mav)
-            time.sleep(0.05)
+            if board_output:
+                print(f"\n  Board: {board_output}")
+
+            # Location is the only RID message that requires a 1 Hz update.
+            # Refresh the static/slow-changing messages every three seconds to
+            # avoid unnecessarily flooding the board UART and application task.
             send_location(mav, lat, lon, alt, heading, speed)
-            time.sleep(0.05)
-            send_system(mav, args.lat, args.lon)
-            time.sleep(0.05)
-            send_self_id(mav)
-            time.sleep(0.05)
-            send_operator_id(mav)
+            msg_count += 1
 
-            msg_count += 5
+            if time.monotonic() >= next_static_update:
+                time.sleep(0.02)
+                send_basic_id(mav, args.serial_number)
+                time.sleep(0.02)
+                send_system(mav, args.lat, args.lon)
+                time.sleep(0.02)
+                send_self_id(mav)
+                time.sleep(0.02)
+                send_operator_id(mav)
+                msg_count += 4
+                next_static_update += 3.0
+                if next_static_update <= time.monotonic():
+                    next_static_update = time.monotonic() + 3.0
+
+            mav.port.flush()
+
             print(f"\r  [{elapsed:6.1f}s] Sent {msg_count} msgs | "
                   f"Pos: {lat:.6f}, {lon:.6f} | Alt: {alt:.1f}m | "
                   f"Hdg: {heading:.0f} deg | Spd: {speed:.1f} m/s",
                   end='', flush=True)
 
-            time.sleep(1.0 / args.rate)
+            # Account for the inter-message sleeps so --rate is the batch rate.
+            next_cycle += 1.0 / args.rate
+            remaining = next_cycle - time.monotonic()
+            if remaining > 0:
+                time.sleep(remaining)
+            else:
+                next_cycle = time.monotonic()
 
     except KeyboardInterrupt:
-        print(f"\n\nStopped. Sent {msg_count} messages in {time.time() - start_time:.1f}s")
+        print(f"\n\nStopped. Sent {msg_count} messages in {time.monotonic() - start_time:.1f}s")
 
 
 if __name__ == '__main__':

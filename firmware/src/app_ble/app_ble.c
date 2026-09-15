@@ -92,6 +92,7 @@ static void APP_BleStackCb(STACK_Event_T *p_stack)
     STACK_Event_T stackEvent;
     APP_Msg_T   appMsg;
     APP_Msg_T   *p_appMsg;
+    uint8_t *p_cccdPayload = NULL;
 
     (void)memcpy((uint8_t *)&stackEvent, (uint8_t *)p_stack, sizeof(STACK_Event_T));
     stackEvent.p_event=OSAL_Malloc(p_stack->evtLen);
@@ -115,10 +116,17 @@ static void APP_BleStackCb(STACK_Event_T *p_stack)
             {
                 (void)memcpy(p_payload, (uint8_t *)p_evtGatt->eventField.onClientCccdListChange.p_cccdList, (p_evtGatt->eventField.onClientCccdListChange.numOfCccd*4));
                 p_evtGatt->eventField.onClientCccdListChange.p_cccdList = (GATTS_CccdList_T *)p_payload;
+                p_cccdPayload = p_payload;
+            }
+            else
+            {
+                OSAL_Free(stackEvent.p_event);
+                return;
             }
         }
     }
 
+    (void)memset(&appMsg, 0, sizeof(appMsg));
     appMsg.msgId=APP_MSG_BLE_STACK_EVT;
 
     ((STACK_Event_T *)appMsg.msgData)->groupId=p_stack->groupId;
@@ -126,7 +134,14 @@ static void APP_BleStackCb(STACK_Event_T *p_stack)
     ((STACK_Event_T *)appMsg.msgData)->p_event=stackEvent.p_event;
 
     p_appMsg = &appMsg;
-    OSAL_QUEUE_Send(&appData.appQueue, p_appMsg, 0);
+    if (OSAL_RESULT_TRUE != OSAL_QUEUE_Send(&appData.appQueue, p_appMsg, 0))
+    {
+        if (NULL != p_cccdPayload)
+        {
+            OSAL_Free(p_cccdPayload);
+        }
+        OSAL_Free(stackEvent.p_event);
+    }
 }
 
 void APP_BleStackEvtHandler(STACK_Event_T *p_stackEvt)

@@ -41,6 +41,7 @@ typedef enum {
 
 static uint8_t s_sendCounter;
 static bool s_vsieEnabled;
+static ODID_UAS_Data s_uasDataSnapshot;
 
 static DRV_HANDLE s_wincHandle = DRV_HANDLE_INVALID;
 static ODID_WiFi_State_t s_wifiState = WIFI_STATE_WAIT_READY;
@@ -81,6 +82,8 @@ static TaskHandle_t s_wifiTaskHandle;
 
 static void ODID_WiFiTask(void *pvParameters)
 {
+    TickType_t lastWakeTime;
+
     (void)pvParameters;
     ODID_WiFi_Log("WiFi: task started\r\n");
 
@@ -96,23 +99,27 @@ static void ODID_WiFiTask(void *pvParameters)
         s_vsieEnabled = true;
     }
 
+    lastWakeTime = xTaskGetTickCount();
+
     for (;;)
     {
-        vTaskDelay(pdMS_TO_TICKS(ODID_WIFI_BEACON_TIMER_PERIOD_MS));
-
-        ODID_UAS_Data *pData = ODID_MAVLink_GetUasData();
-        if (pData == NULL) {
-            continue;
+        if (ODID_MAVLink_CopyUasData(&s_uasDataSnapshot)) {
+            bool ok = ODID_VSIE_UpdatePayload(
+                s_wincHandle, &s_uasDataSnapshot, s_sendCounter);
+            if (!ok) {
+                vTaskDelay(pdMS_TO_TICKS(100));
+                ok = ODID_VSIE_UpdatePayload(
+                    s_wincHandle, &s_uasDataSnapshot, s_sendCounter);
+            }
+            if (ok) {
+                s_sendCounter++;
+            }
         }
 
-        bool ok = ODID_VSIE_UpdatePayload(s_wincHandle, pData, s_sendCounter);
-        if (!ok) {
-            vTaskDelay(pdMS_TO_TICKS(100));
-            ok = ODID_VSIE_UpdatePayload(s_wincHandle, pData, s_sendCounter);
-        }
-        if (ok) {
-            s_sendCounter++;
-        }
+        /* Keep updates on an absolute one-second cadence without drift. */
+        vTaskDelayUntil(
+            &lastWakeTime,
+            pdMS_TO_TICKS(ODID_WIFI_BEACON_TIMER_PERIOD_MS));
     }
 }
 

@@ -196,6 +196,9 @@ void APP_Tasks ( void )
             // The shared ODID data drives both BLE and WiFi broadcasts.
             ODID_WiFi_Init();
 #ifndef ODID_WIFI_ONLY_TEST
+            /* Load real RID data before enabling the advertising sets. */
+            ODID_BLE_UpdateLegacy(ODID_MAVLink_GetUasData());
+            ODID_BLE_UpdateLongRange(ODID_MAVLink_GetUasData());
             ODID_BLE_StartAdvertising();
 #endif
             ODID_WiFi_StartAdvertising();
@@ -211,6 +214,8 @@ void APP_Tasks ( void )
 
         case APP_STATE_SERVICE_TASKS:
         {
+            /* Keep byte parsing and message conversion out of the USART ISR. */
+            ODID_UART_Tasks();
 
             if (OSAL_QUEUE_Receive(&appData.appQueue, &appMsg, pdMS_TO_TICKS(1)))
             {

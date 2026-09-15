@@ -2,6 +2,7 @@
 #include "odid_ble.h"
 #include "app.h"
 #include "app_ble.h"
+#include "definitions.h"
 #include "osal/osal_freertos_extend.h"
 #include "FreeRTOS.h"
 #include "timers.h"
@@ -29,9 +30,17 @@ static uint8_t s_msgCounters[ODID_MSG_COUNTER_AMOUNT];
 
 static TimerHandle_t s_legacyTimer;
 static TimerHandle_t s_longrangeTimer;
+static bool s_bleReady;
+static volatile bool s_legacyUpdatePending;
+static volatile bool s_longrangeUpdatePending;
 
 static void ODID_LegacyTimerCallback(TimerHandle_t xTimer);
 static void ODID_LongRangeTimerCallback(TimerHandle_t xTimer);
+
+static void ODID_BLE_Log(const char *message)
+{
+    SERCOM1_USART_Write((uint8_t *)message, strlen(message));
+}
 
 void ODID_BLE_Init(void)
 {
@@ -40,6 +49,9 @@ void ODID_BLE_Init(void)
 
     memset(s_msgCounters, 0, sizeof(s_msgCounters));
     s_legacyPhase = 0;
+    s_bleReady = true;
+    s_legacyUpdatePending = false;
+    s_longrangeUpdatePending = false;
 
     // Configure Advertising Set 0: Legacy BLE4 (1M PHY, non-connectable)
     memset(&advParams, 0, sizeof(advParams));
@@ -55,7 +67,10 @@ void ODID_BLE_Init(void)
     advParams.secPhy = BLE_GAP_PHY_TYPE_LE_1M;
     advParams.sid = 0;
     advParams.scanReqNotifiEnable = false;
-    BLE_GAP_SetExtAdvParams(&advParams, &selectedTxPower);
+    if (MBA_RES_SUCCESS != BLE_GAP_SetExtAdvParams(&advParams, &selectedTxPower)) {
+        ODID_BLE_Log("BLE: legacy params failed\r\n");
+        s_bleReady = false;
+    }
 
     // Configure Advertising Set 1: Extended BLE5 (Coded PHY S8, long range)
     memset(&advParams, 0, sizeof(advParams));
@@ -73,7 +88,10 @@ void ODID_BLE_Init(void)
     advParams.scanReqNotifiEnable = false;
     advParams.priPhyOptions = BLE_GAP_CODED_PHY_HOST_PREFER_S8;
     advParams.secPhyOptions = BLE_GAP_CODED_PHY_HOST_PREFER_S8;
-    BLE_GAP_SetExtAdvParams(&advParams, &selectedTxPower);
+    if (MBA_RES_SUCCESS != BLE_GAP_SetExtAdvParams(&advParams, &selectedTxPower)) {
+        ODID_BLE_Log("BLE: coded params failed\r\n");
+        s_bleReady = false;
+    }
 
     // Set initial empty advertising data for both sets
     uint8_t emptyData[] = {0x02, 0x01, 0x06}; // Flags only
@@ -84,12 +102,18 @@ void ODID_BLE_Init(void)
     advDataParams.fragPreference = BLE_GAP_EXT_ADV_DATA_FRAG_ALL;
     advDataParams.advLen = sizeof(emptyData);
     advDataParams.p_advData = emptyData;
-    BLE_GAP_SetExtAdvData(&advDataParams);
+    if (MBA_RES_SUCCESS != BLE_GAP_SetExtAdvData(&advDataParams)) {
+        ODID_BLE_Log("BLE: legacy initial data failed\r\n");
+        s_bleReady = false;
+    }
 
     advDataParams.advHandle = ODID_ADV_HANDLE_CODED;
     advDataParams.advLen = sizeof(emptyData);
     advDataParams.p_advData = emptyData;
-    BLE_GAP_SetExtAdvData(&advDataParams);
+    if (MBA_RES_SUCCESS != BLE_GAP_SetExtAdvData(&advDataParams)) {
+        ODID_BLE_Log("BLE: coded initial data failed\r\n");
+        s_bleReady = false;
+    }
 
     // Create FreeRTOS software timers
     s_legacyTimer = xTimerCreate(
@@ -107,11 +131,21 @@ void ODID_BLE_Init(void)
         NULL,
         ODID_LongRangeTimerCallback
     );
+
+    if ((NULL == s_legacyTimer) || (NULL == s_longrangeTimer)) {
+        ODID_BLE_Log("BLE: timer creation failed\r\n");
+        s_bleReady = false;
+    }
 }
 
 void ODID_BLE_StartAdvertising(void)
 {
     BLE_GAP_ExtAdvEnableParams_T enableParams[2];
+
+    if (!s_bleReady) {
+        ODID_BLE_Log("BLE: not ready\r\n");
+        return;
+    }
 
     // Enable legacy set
     enableParams[0].advHandle = ODID_ADV_HANDLE_LEGACY;
@@ -123,19 +157,30 @@ void ODID_BLE_StartAdvertising(void)
     enableParams[1].duration = 0;
     enableParams[1].maxExtAdvEvts = 0;
 
-    BLE_GAP_SetExtAdvEnable(true, 2, enableParams);
+    if (MBA_RES_SUCCESS != BLE_GAP_SetExtAdvEnable(true, 2, enableParams)) {
+        ODID_BLE_Log("BLE: advertising enable failed\r\n");
+        return;
+    }
 
     // Start the cycling timers
     if (s_legacyTimer != NULL) {
-        xTimerStart(s_legacyTimer, 0);
+        if (pdPASS != xTimerStart(s_legacyTimer, 0)) {
+            ODID_BLE_Log("BLE: legacy timer start failed\r\n");
+        }
     }
     if (s_longrangeTimer != NULL) {
-        xTimerStart(s_longrangeTimer, 0);
+        if (pdPASS != xTimerStart(s_longrangeTimer, 0)) {
+            ODID_BLE_Log("BLE: coded timer start failed\r\n");
+        }
     }
 }
 
 void ODID_BLE_UpdateLegacy(ODID_UAS_Data *pUasData)
 {
+    uint8_t counterIndex = ODID_MSG_COUNTER_AMOUNT;
+
+    s_legacyUpdatePending = false;
+
     if (pUasData == NULL) {
         return;
     }
@@ -161,7 +206,8 @@ void ODID_BLE_UpdateLegacy(ODID_UAS_Data *pUasData)
                 ODID_Location_encoded encoded;
                 memset(&encoded, 0, sizeof(encoded));
                 if (encodeLocationMessage(&encoded, &pUasData->Location) == ODID_SUCCESS) {
-                    s_legacyPayload[legacyLength] = s_msgCounters[ODID_MSG_COUNTER_LOCATION]++;
+                    s_legacyPayload[legacyLength] = s_msgCounters[ODID_MSG_COUNTER_LOCATION];
+                    counterIndex = ODID_MSG_COUNTER_LOCATION;
                     legacyLength++;
                     memcpy(&s_legacyPayload[legacyLength], &encoded, sizeof(encoded));
                     legacyLength += sizeof(encoded);
@@ -175,7 +221,8 @@ void ODID_BLE_UpdateLegacy(ODID_UAS_Data *pUasData)
                 ODID_BasicID_encoded encoded;
                 memset(&encoded, 0, sizeof(encoded));
                 if (encodeBasicIDMessage(&encoded, &pUasData->BasicID[0]) == ODID_SUCCESS) {
-                    s_legacyPayload[legacyLength] = s_msgCounters[ODID_MSG_COUNTER_BASIC_ID]++;
+                    s_legacyPayload[legacyLength] = s_msgCounters[ODID_MSG_COUNTER_BASIC_ID];
+                    counterIndex = ODID_MSG_COUNTER_BASIC_ID;
                     legacyLength++;
                     memcpy(&s_legacyPayload[legacyLength], &encoded, sizeof(encoded));
                     legacyLength += sizeof(encoded);
@@ -189,7 +236,8 @@ void ODID_BLE_UpdateLegacy(ODID_UAS_Data *pUasData)
                 ODID_SelfID_encoded encoded;
                 memset(&encoded, 0, sizeof(encoded));
                 if (encodeSelfIDMessage(&encoded, &pUasData->SelfID) == ODID_SUCCESS) {
-                    s_legacyPayload[legacyLength] = s_msgCounters[ODID_MSG_COUNTER_SELF_ID]++;
+                    s_legacyPayload[legacyLength] = s_msgCounters[ODID_MSG_COUNTER_SELF_ID];
+                    counterIndex = ODID_MSG_COUNTER_SELF_ID;
                     legacyLength++;
                     memcpy(&s_legacyPayload[legacyLength], &encoded, sizeof(encoded));
                     legacyLength += sizeof(encoded);
@@ -203,7 +251,8 @@ void ODID_BLE_UpdateLegacy(ODID_UAS_Data *pUasData)
                 ODID_System_encoded encoded;
                 memset(&encoded, 0, sizeof(encoded));
                 if (encodeSystemMessage(&encoded, &pUasData->System) == ODID_SUCCESS) {
-                    s_legacyPayload[legacyLength] = s_msgCounters[ODID_MSG_COUNTER_SYSTEM]++;
+                    s_legacyPayload[legacyLength] = s_msgCounters[ODID_MSG_COUNTER_SYSTEM];
+                    counterIndex = ODID_MSG_COUNTER_SYSTEM;
                     legacyLength++;
                     memcpy(&s_legacyPayload[legacyLength], &encoded, sizeof(encoded));
                     legacyLength += sizeof(encoded);
@@ -217,7 +266,8 @@ void ODID_BLE_UpdateLegacy(ODID_UAS_Data *pUasData)
                 ODID_OperatorID_encoded encoded;
                 memset(&encoded, 0, sizeof(encoded));
                 if (encodeOperatorIDMessage(&encoded, &pUasData->OperatorID) == ODID_SUCCESS) {
-                    s_legacyPayload[legacyLength] = s_msgCounters[ODID_MSG_COUNTER_OPERATOR_ID]++;
+                    s_legacyPayload[legacyLength] = s_msgCounters[ODID_MSG_COUNTER_OPERATOR_ID];
+                    counterIndex = ODID_MSG_COUNTER_OPERATOR_ID;
                     legacyLength++;
                     memcpy(&s_legacyPayload[legacyLength], &encoded, sizeof(encoded));
                     legacyLength += sizeof(encoded);
@@ -230,9 +280,6 @@ void ODID_BLE_UpdateLegacy(ODID_UAS_Data *pUasData)
             break;
     }
 
-    // Advance to next phase
-    s_legacyPhase = (s_legacyPhase + 1) % ODID_LEGACY_PHASE_COUNT;
-
     // Update the advertising data if we encoded something
     if (legacyLength > (int)sizeof(header)) {
         BLE_GAP_ExtAdvDataParams_T advDataParams;
@@ -241,12 +288,21 @@ void ODID_BLE_UpdateLegacy(ODID_UAS_Data *pUasData)
         advDataParams.fragPreference = BLE_GAP_EXT_ADV_DATA_FRAG_ALL;
         advDataParams.advLen = (uint16_t)legacyLength;
         advDataParams.p_advData = s_legacyPayload;
-        BLE_GAP_SetExtAdvData(&advDataParams);
+        if (MBA_RES_SUCCESS != BLE_GAP_SetExtAdvData(&advDataParams)) {
+            ODID_BLE_Log("BLE: legacy data update failed\r\n");
+        } else if (counterIndex < ODID_MSG_COUNTER_AMOUNT) {
+            s_msgCounters[counterIndex]++;
+        }
     }
+
+    // Always advance so one failed/invalid type cannot block Location updates.
+    s_legacyPhase = (s_legacyPhase + 1U) % ODID_LEGACY_PHASE_COUNT;
 }
 
 void ODID_BLE_UpdateLongRange(ODID_UAS_Data *pUasData)
 {
+    s_longrangeUpdatePending = false;
+
     if (pUasData == NULL) {
         return;
     }
@@ -266,7 +322,7 @@ void ODID_BLE_UpdateLongRange(ODID_UAS_Data *pUasData)
         ODID_SERVICE_UUID_LSB,
         ODID_SERVICE_UUID_MSB,
         ODID_APP_CODE,
-        s_msgCounters[ODID_MSG_COUNTER_PACKED]++
+        s_msgCounters[ODID_MSG_COUNTER_PACKED]
     };
 
     memcpy(s_longrangePayload, header, sizeof(header));
@@ -280,21 +336,38 @@ void ODID_BLE_UpdateLongRange(ODID_UAS_Data *pUasData)
     advDataParams.fragPreference = BLE_GAP_EXT_ADV_DATA_FRAG_ALL;
     advDataParams.advLen = (uint16_t)totalLength;
     advDataParams.p_advData = s_longrangePayload;
-    BLE_GAP_SetExtAdvData(&advDataParams);
+    if (MBA_RES_SUCCESS != BLE_GAP_SetExtAdvData(&advDataParams)) {
+        ODID_BLE_Log("BLE: coded data update failed\r\n");
+        return;
+    }
+
+    s_msgCounters[ODID_MSG_COUNTER_PACKED]++;
 }
 
 static void ODID_LegacyTimerCallback(TimerHandle_t xTimer)
 {
     (void)xTimer;
     APP_Msg_T appMsg;
+    memset(&appMsg, 0, sizeof(appMsg));
     appMsg.msgId = APP_MSG_ODID_LEGACY_UPDATE;
-    OSAL_QUEUE_Send(&appData.appQueue, &appMsg, 0);
+    if (!s_legacyUpdatePending) {
+        s_legacyUpdatePending = true;
+        if (OSAL_RESULT_TRUE != OSAL_QUEUE_Send(&appData.appQueue, &appMsg, 0)) {
+            s_legacyUpdatePending = false;
+        }
+    }
 }
 
 static void ODID_LongRangeTimerCallback(TimerHandle_t xTimer)
 {
     (void)xTimer;
     APP_Msg_T appMsg;
+    memset(&appMsg, 0, sizeof(appMsg));
     appMsg.msgId = APP_MSG_ODID_LONGRANGE_UPDATE;
-    OSAL_QUEUE_Send(&appData.appQueue, &appMsg, 0);
+    if (!s_longrangeUpdatePending) {
+        s_longrangeUpdatePending = true;
+        if (OSAL_RESULT_TRUE != OSAL_QUEUE_Send(&appData.appQueue, &appMsg, 0)) {
+            s_longrangeUpdatePending = false;
+        }
+    }
 }

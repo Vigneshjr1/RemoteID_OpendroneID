@@ -15,9 +15,6 @@ extern "C" {
 #define ODID_LEGACY_PAYLOAD_LEN  31
 #define ODID_LONGRANGE_PAYLOAD_MAX 250
 
-#define ODID_LEGACY_TIMER_PERIOD_MS   1000
-#define ODID_LONGRANGE_TIMER_PERIOD_MS 1000
-
 typedef enum {
     ODID_LEGACY_PHASE_LOCATION = 0,
     ODID_LEGACY_PHASE_BASIC_ID,
@@ -26,6 +23,10 @@ typedef enum {
     ODID_LEGACY_PHASE_OPERATOR_ID,
     ODID_LEGACY_PHASE_COUNT
 } ODID_LegacyPhase_T;
+
+/* Cycle all legacy message types once per second. */
+#define ODID_LEGACY_TIMER_PERIOD_MS     (1000U / ODID_LEGACY_PHASE_COUNT)
+#define ODID_LONGRANGE_TIMER_PERIOD_MS  1000U
 
 void ODID_BLE_Init(void);
 void ODID_BLE_StartAdvertising(void);
