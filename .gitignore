@@ -11,6 +11,18 @@ firmware/ext_adv.X/debug/
 *.log
 *.log.inx
 
+# Build artifacts
+firmware/_build/
+firmware/out/
+firmware/ext_adv.X/.generated_files/
+
+# Backup/temp files
+*.orig
+
+# Documents and references
+*.pdf
+UART_TROUBLESHOOTING.md
+
 # OS files
 .DS_Store
 Thumbs.db
