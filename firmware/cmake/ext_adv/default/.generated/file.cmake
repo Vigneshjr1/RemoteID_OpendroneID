@@ -51,7 +51,7 @@ set(ext_adv_default_default_XC32_FILE_TYPE_compile
     "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/config/default/peripheral/nvic/plib_nvic.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/config/default/peripheral/nvm/plib_nvm.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/config/default/peripheral/rtc/plib_rtc_timer.c"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/config/default/peripheral/sercom/usart/plib_sercom1_usart.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/config/default/peripheral/sercom/usart/plib_sercom0_usart.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/config/default/startup_xc32.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/config/default/stdio/xc32_monitor.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/config/default/system/cache/sys_cache.c"

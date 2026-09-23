@@ -56,7 +56,7 @@ static void ODID_WiFi_RunStateMachine(void);
 
 static void ODID_WiFi_Log(const char *message)
 {
-    SERCOM1_USART_Write((uint8_t *)message, strlen(message));
+    SERCOM0_USART_Write((uint8_t *)message, strlen(message));
 }
 
 static void ODID_WiFi_RegDomainCallback(DRV_HANDLE handle,

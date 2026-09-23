@@ -39,7 +39,7 @@ static void ODID_LongRangeTimerCallback(TimerHandle_t xTimer);
 
 static void ODID_BLE_Log(const char *message)
 {
-    SERCOM1_USART_Write((uint8_t *)message, strlen(message));
+    SERCOM0_USART_Write((uint8_t *)message, strlen(message));
 }
 
 void ODID_BLE_Init(void)
@@ -273,6 +273,23 @@ void ODID_BLE_UpdateLegacy(ODID_UAS_Data *pUasData)
                     legacyLength += sizeof(encoded);
                 }
             }
+            break;
+        }
+
+        case ODID_LEGACY_PHASE_AUTH: {
+            static uint8_t s_authPage;
+            if (pUasData->AuthValid[s_authPage]) {
+                ODID_Auth_encoded encoded;
+                memset(&encoded, 0, sizeof(encoded));
+                if (encodeAuthMessage(&encoded, &pUasData->Auth[s_authPage]) == ODID_SUCCESS) {
+                    s_legacyPayload[legacyLength] = s_msgCounters[ODID_MSG_COUNTER_AUTH];
+                    counterIndex = ODID_MSG_COUNTER_AUTH;
+                    legacyLength++;
+                    memcpy(&s_legacyPayload[legacyLength], &encoded, sizeof(encoded));
+                    legacyLength += sizeof(encoded);
+                }
+            }
+            s_authPage = (s_authPage + 1U) % 4U;
             break;
         }
 

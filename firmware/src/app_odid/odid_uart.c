@@ -23,27 +23,27 @@ void ODID_UART_Init(void)
 
     // SERCOM1 is already initialized by the system (plib_sercom0_usart.c)
     // Configure read notification: trigger when at least 1 byte available
-    SERCOM1_USART_ReadThresholdSet(1);
-    SERCOM1_USART_ReadNotificationEnable(true, true);
-    SERCOM1_USART_ReadCallbackRegister(ODID_UART_ReadCallback, 0);
+    SERCOM0_USART_ReadThresholdSet(1);
+    SERCOM0_USART_ReadNotificationEnable(true, true);
+    SERCOM0_USART_ReadCallbackRegister(ODID_UART_ReadCallback, 0);
 }
 
 void ODID_UART_Tasks(void)
 {
     size_t bytesAvailable;
 
-    if (!s_rxPending && (0U == SERCOM1_USART_ReadCountGet())) {
+    if (!s_rxPending && (0U == SERCOM0_USART_ReadCountGet())) {
         return;
     }
 
     s_rxPending = false;
 
     /* Drain the ring buffer in task context, including batches over 64 bytes. */
-    while ((bytesAvailable = SERCOM1_USART_ReadCountGet()) > 0U) {
+    while ((bytesAvailable = SERCOM0_USART_ReadCountGet()) > 0U) {
         if (bytesAvailable > ODID_UART_RX_BUFFER_SIZE) {
             bytesAvailable = ODID_UART_RX_BUFFER_SIZE;
         }
-        size_t bytesRead = SERCOM1_USART_Read(s_rxBuffer, bytesAvailable);
+        size_t bytesRead = SERCOM0_USART_Read(s_rxBuffer, bytesAvailable);
         for (size_t i = 0; i < bytesRead; i++) {
             ODID_MAVLink_ProcessByte(s_rxBuffer[i]);
         }

@@ -1660,8 +1660,8 @@ bool WINC_DevBusStateSet(WINC_DEVICE_HANDLE devHandle, WINC_DEV_BUS_STATE_TYPE b
 
 static void cfgDbg(const char *msg)
 {
-    extern size_t SERCOM1_USART_Write(uint8_t *pWrBuffer, const size_t size);
-    (void)SERCOM1_USART_Write((uint8_t *)(uintptr_t)msg, strlen(msg));
+    extern size_t SERCOM0_USART_Write(uint8_t *pWrBuffer, const size_t size);
+    (void)SERCOM0_USART_Write((uint8_t *)(uintptr_t)msg, strlen(msg));
 }
 
 bool WINC_DevSendCfgPacket(WINC_DEVICE_HANDLE devHandle, const uint8_t *pData, size_t dataLen)

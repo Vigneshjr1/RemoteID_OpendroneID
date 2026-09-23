@@ -27,7 +27,7 @@ static uint8_t s_ieStoreBuf[ODID_VSIE_STORE_SIZE];
 
 static void vsie_log(const char *msg)
 {
-    SERCOM1_USART_Write((uint8_t *)msg, strlen(msg));
+    SERCOM0_USART_Write((uint8_t *)msg, strlen(msg));
 }
 
 void ODID_VSIE_Init(void)

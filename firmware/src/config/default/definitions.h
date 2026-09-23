@@ -52,7 +52,8 @@
 #include "crypto/crypto.h"
 #include "ble/lib/include/bt_sys.h"
 #include <string.h>
-#include "peripheral/sercom/usart/plib_sercom1_usart.h"
+#include "peripheral/sercom/usart/plib_sercom0_usart.h"
+#include "peripheral/sercom/i2c_master/plib_sercom1_i2c_master.h"
 #ifndef ODID_WIFI_DISABLE
 #include "driver/wifi/wincs02/include/wdrv_winc_api.h"
 #include "peripheral/eic/plib_eic.h"

@@ -62,6 +62,7 @@
 #include "app_odid/odid_uart.h"
 #include "app_odid/odid_wifi.h"
 #include "app_odid/odid_test.h"
+#include "app_odid/odid_auth.h"
 
 
 
@@ -189,9 +190,14 @@ void APP_Tasks ( void )
             ODID_MAVLink_Init();
             ODID_UART_Init();
 
+            ODID_Auth_Init();
+
 #ifdef ODID_USE_TEST_DATA
             ODID_Test_PopulateData(ODID_MAVLink_GetUasData());
 #endif
+
+            // Sign the initial UAS data with ATECC608
+            ODID_Auth_Sign(ODID_MAVLink_GetUasData());
 
             // The shared ODID data drives both BLE and WiFi broadcasts.
             ODID_WiFi_Init();
@@ -203,7 +209,7 @@ void APP_Tasks ( void )
 #endif
             ODID_WiFi_StartAdvertising();
 
-            SERCOM1_USART_Write((uint8_t *)"ODID Started\r\n", 14);
+            SERCOM0_USART_Write((uint8_t *)"ODID Started\r\n", 14);
 
             if (appInitialized)
             {

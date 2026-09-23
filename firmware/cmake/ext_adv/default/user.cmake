@@ -32,3 +32,26 @@ target_sources(ext_adv_default_default_XC32_compile PRIVATE
     "${CMAKE_CURRENT_LIST_DIR}/../../../src/config/default/peripheral/tc/plib_tc0.c"
 )
 endif()
+
+# CryptoAuthLib (ATECC608) sources and include paths
+set(CRYPTOAUTHLIB_DIR "${CMAKE_CURRENT_LIST_DIR}/../../../src/config/default/library")
+file(GLOB_RECURSE CRYPTOAUTHLIB_SOURCES CONFIGURE_DEPENDS "${CRYPTOAUTHLIB_DIR}/*.c")
+list(FILTER CRYPTOAUTHLIB_SOURCES EXCLUDE REGEX "hal_gpio_harmony\\.c$")
+target_sources(ext_adv_default_default_XC32_compile PRIVATE ${CRYPTOAUTHLIB_SOURCES})
+target_include_directories(ext_adv_default_default_XC32_compile PRIVATE
+    "${CRYPTOAUTHLIB_DIR}"
+    "${CRYPTOAUTHLIB_DIR}/hal"
+    "${CRYPTOAUTHLIB_DIR}/calib"
+    "${CRYPTOAUTHLIB_DIR}/crypto"
+    "${CRYPTOAUTHLIB_DIR}/host"
+)
+
+# SERCOM1 I2C Master PLIB
+target_sources(ext_adv_default_default_XC32_compile PRIVATE
+    "${CMAKE_CURRENT_LIST_DIR}/../../../src/config/default/peripheral/sercom/i2c_master/plib_sercom1_i2c_master.c"
+)
+
+# OpenDroneID Authentication module
+target_sources(ext_adv_default_default_XC32_compile PRIVATE
+    "${CMAKE_CURRENT_LIST_DIR}/../../../src/app_odid/odid_auth.c"
+)
