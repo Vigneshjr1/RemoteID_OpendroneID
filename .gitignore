@@ -13,7 +13,6 @@ firmware/ext_adv.X/debug/
 
 # Build artifacts
 firmware/_build/
-firmware/out/
 firmware/ext_adv.X/.generated_files/
 
 # Backup/temp files
