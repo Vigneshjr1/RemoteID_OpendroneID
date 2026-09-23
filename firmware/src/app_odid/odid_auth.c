@@ -82,14 +82,18 @@ bool ODID_Auth_Sign(ODID_UAS_Data *pUasData)
 
     ODID_BasicID_encoded basicEncoded;
     ODID_Location_encoded locEncoded;
+    ODID_SelfID_encoded selfEncoded;
     ODID_System_encoded sysEncoded;
+    ODID_OperatorID_encoded opEncoded;
     uint8_t digest[32];
     uint8_t signature[ODID_AUTH_SIG_LEN];
     ATCA_STATUS status;
 
     memset(&basicEncoded, 0, sizeof(basicEncoded));
     memset(&locEncoded, 0, sizeof(locEncoded));
+    memset(&selfEncoded, 0, sizeof(selfEncoded));
     memset(&sysEncoded, 0, sizeof(sysEncoded));
+    memset(&opEncoded, 0, sizeof(opEncoded));
 
     if (pUasData->BasicIDValid[0]) {
         encodeBasicIDMessage(&basicEncoded, &pUasData->BasicID[0]);
@@ -97,17 +101,26 @@ bool ODID_Auth_Sign(ODID_UAS_Data *pUasData)
     if (pUasData->LocationValid) {
         encodeLocationMessage(&locEncoded, &pUasData->Location);
     }
+    if (pUasData->SelfIDValid) {
+        encodeSelfIDMessage(&selfEncoded, &pUasData->SelfID);
+    }
     if (pUasData->SystemValid) {
         encodeSystemMessage(&sysEncoded, &pUasData->System);
     }
+    if (pUasData->OperatorIDValid) {
+        encodeOperatorIDMessage(&opEncoded, &pUasData->OperatorID);
+    }
 
-    /* Hash BasicID + Location + System using ATECC608 hardware SHA-256 */
+    /* Hash all 5 message types using ATECC608 hardware SHA-256 */
     {
-        uint8_t buf[sizeof(basicEncoded) + sizeof(locEncoded) + sizeof(sysEncoded)];
+        uint8_t buf[sizeof(basicEncoded) + sizeof(locEncoded) + sizeof(selfEncoded)
+                   + sizeof(sysEncoded) + sizeof(opEncoded)];
         size_t off = 0;
         memcpy(&buf[off], &basicEncoded, sizeof(basicEncoded)); off += sizeof(basicEncoded);
         memcpy(&buf[off], &locEncoded, sizeof(locEncoded));     off += sizeof(locEncoded);
+        memcpy(&buf[off], &selfEncoded, sizeof(selfEncoded));   off += sizeof(selfEncoded);
         memcpy(&buf[off], &sysEncoded, sizeof(sysEncoded));     off += sizeof(sysEncoded);
+        memcpy(&buf[off], &opEncoded, sizeof(opEncoded));       off += sizeof(opEncoded);
         status = atcab_sha(off, buf, digest);
         if (ATCA_SUCCESS != status) {
             auth_log("Auth: sha fail\r\n");
@@ -161,7 +174,7 @@ bool ODID_Auth_Sign(ODID_UAS_Data *pUasData)
     /* Page 0 */
     memset(&pUasData->Auth[0], 0, sizeof(ODID_Auth_data));
     pUasData->Auth[0].DataPage = 0;
-    pUasData->Auth[0].AuthType = ODID_AUTH_UAS_ID_SIGNATURE;
+    pUasData->Auth[0].AuthType = ODID_AUTH_MESSAGE_SET_SIGNATURE;
     pUasData->Auth[0].LastPageIndex = 3;
     pUasData->Auth[0].Length = ODID_AUTH_SIG_LEN;
     pUasData->Auth[0].Timestamp = timestamp;
@@ -171,7 +184,7 @@ bool ODID_Auth_Sign(ODID_UAS_Data *pUasData)
     /* Page 1 */
     memset(&pUasData->Auth[1], 0, sizeof(ODID_Auth_data));
     pUasData->Auth[1].DataPage = 1;
-    pUasData->Auth[1].AuthType = ODID_AUTH_UAS_ID_SIGNATURE;
+    pUasData->Auth[1].AuthType = ODID_AUTH_MESSAGE_SET_SIGNATURE;
     memcpy(pUasData->Auth[1].AuthData, &signature[ODID_AUTH_PAGE_ZERO_DATA_SIZE],
            ODID_AUTH_PAGE_NONZERO_DATA_SIZE);
     pUasData->AuthValid[1] = 1;
@@ -179,7 +192,7 @@ bool ODID_Auth_Sign(ODID_UAS_Data *pUasData)
     /* Page 2 */
     memset(&pUasData->Auth[2], 0, sizeof(ODID_Auth_data));
     pUasData->Auth[2].DataPage = 2;
-    pUasData->Auth[2].AuthType = ODID_AUTH_UAS_ID_SIGNATURE;
+    pUasData->Auth[2].AuthType = ODID_AUTH_MESSAGE_SET_SIGNATURE;
     memcpy(pUasData->Auth[2].AuthData,
            &signature[ODID_AUTH_PAGE_ZERO_DATA_SIZE + ODID_AUTH_PAGE_NONZERO_DATA_SIZE],
            ODID_AUTH_PAGE_NONZERO_DATA_SIZE);
@@ -188,7 +201,7 @@ bool ODID_Auth_Sign(ODID_UAS_Data *pUasData)
     /* Page 3 — last byte of signature */
     memset(&pUasData->Auth[3], 0, sizeof(ODID_Auth_data));
     pUasData->Auth[3].DataPage = 3;
-    pUasData->Auth[3].AuthType = ODID_AUTH_UAS_ID_SIGNATURE;
+    pUasData->Auth[3].AuthType = ODID_AUTH_MESSAGE_SET_SIGNATURE;
     uint8_t remaining = ODID_AUTH_SIG_LEN -
         ODID_AUTH_PAGE_ZERO_DATA_SIZE - (2 * ODID_AUTH_PAGE_NONZERO_DATA_SIZE);
     memcpy(pUasData->Auth[3].AuthData,
